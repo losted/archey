@@ -91,7 +91,7 @@ sh_dict = {'zsh': 'Z-Shell',
 def xmonadfix(str):
 	if re.compile("xmonad").match(str): return "xmonad"
 	return str
-p1 = Popen(['ps', '-Au', getuser()], stdout=PIPE).communicate()[0].split('\n')
+p1 = Popen(['ps', '-u', getuser()], stdout=PIPE).communicate()[0].split('\n')
 processes = map(xmonadfix, [process.split()[3] for process in p1 if process])
 p1 = None
 
