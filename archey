@@ -14,6 +14,7 @@ import subprocess, optparse, re
 from subprocess import Popen, PIPE
 from optparse import OptionParser
 from getpass import getuser
+from time import ctime
 
 # Display [Comment/Uncomment to Enable/Disable information.]
 display = [
@@ -111,7 +112,7 @@ def ram_display():
 # Screenshot Function 
 screen = '%s' % options.screenshot
 def screenshot():
-	subprocess.check_call(['scrot', '-cd5'])
+	subprocess.check_call(['import', '-window', 'root', ctime().replace(' ','_')+'.jpg'])
 
 # Operating System Function
 def os_display(): 
