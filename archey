@@ -13,6 +13,7 @@
 import subprocess, optparse, re
 from subprocess import Popen, PIPE
 from optparse import OptionParser
+from getpass import getuser
 
 # Display [Comment/Uncomment to Enable/Disable information.]
 display = [
@@ -26,7 +27,7 @@ display = [
 	'packages', # Display Number of Packages Installed
 	'ram', # Display RAM Usage
 	'cpu', # Display CPU Model
-  'sh', # Display Current Shell
+	'sh', # Display Current Shell
 #	'fs:/boot', # Display /boot Partition Usage
 #	'fs:/home', # Display /home Partition Usage
 #	'fs:/MOUNT/POINT', # Display * Partition, Edit To Your Needs
@@ -70,8 +71,8 @@ wm_dict = {'awesome': 'Awesome',
            'icewm': 'IceWM',
            'kwin': 'KWin',
            'metacity': 'Metacity',
-	         'musca': 'Musca',
-	         'openbox': 'Openbox',
+	   'musca': 'Musca',
+	   'openbox': 'Openbox',
            'pekwm': 'PekWM',
            'wmaker': 'Window Maker',
            'wmii': 'wmii',
@@ -90,7 +91,7 @@ sh_dict = {'zsh': 'Z-Shell',
 def xmonadfix(str):
 	if re.compile("xmonad").match(str): return "xmonad"
 	return str
-p1 = Popen(['ps', '-A'], stdout=PIPE).communicate()[0].split('\n')
+p1 = Popen(['ps', '-Au', getuser()], stdout=PIPE).communicate()[0].split('\n')
 processes = map(xmonadfix, [process.split()[3] for process in p1 if process])
 p1 = None
 
