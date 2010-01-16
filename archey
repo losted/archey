@@ -10,11 +10,14 @@
 # Along with basic system information.
 
 # Import libraries
-import subprocess, optparse, re
+import subprocess, optparse, re, sys
 from subprocess import Popen, PIPE
 from optparse import OptionParser
 from getpass import getuser
 from time import ctime
+
+if sys.version_info[1] < 6:
+	from future import with_statement
 
 # Display [Comment/Uncomment to Enable/Disable information.]
 display = [
@@ -88,6 +91,9 @@ sh_dict = {'zsh': 'Z-Shell',
            'jsh': 'Job control shell',
            'tcsh': 'The C Shell'}
 
+os_dict = {'arch': 'Arch Linux',
+	   'ubuntu': 'Ubuntu'}
+
 # Find running processes.
 def xmonadfix(str):
 	if re.compile("xmonad").match(str): return "xmonad"
@@ -95,6 +101,9 @@ def xmonadfix(str):
 p1 = Popen(['ps', '-u', getuser()], stdout=PIPE).communicate()[0].split('\n')
 processes = map(xmonadfix, [process.split()[3] for process in p1 if process])
 p1 = None
+
+# Architecture
+arch = Popen(['uname', '-m'], stdout=PIPE).communicate()[0].rstrip('\n')
 
 # Print coloured key with normal value.
 def output(key, value):
@@ -115,10 +124,31 @@ def screenshot():
 	subprocess.check_call(['import', '-window', 'root', ctime().replace(' ','_')+'.jpg'])
 
 # Operating System Function
-def os_display(): 
-	arch = Popen(['uname', '-m'], stdout=PIPE).communicate()[0].rstrip('\n')
-	os = 'Arch Linux %s' % (arch)
-	output('OS', os)
+def os_display():
+	global os
+	for key in os_dict:
+		if eval('os_' + key)() == True: os = os_dict[key]
+	output('OS', os + ' ' + arch)
+
+# Arch finding function
+def os_arch():
+	try:
+		file = open('/etc/pacman.conf')
+	except IOError:
+		return False
+	else:
+		file.close()
+		return True
+
+# Ubuntu finding function
+def os_ubuntu():
+	try:
+		file = open('/etc/issue.conf')
+	except IOError:
+		return False
+	else:
+		file.close()
+		return True
 
 # Kernel Function
 def kernel_display():
@@ -213,27 +243,63 @@ for x in display:
 # Array containing values.
 result.extend(['']*(15 - len(display)))
 
+colors = {'Arch Linux': (color, color, color, result[0], color, result[1], color, result[2], color, result[3], color, result[4], color, result[5], color, result[6], color, color2, color, result[7], color, color2, color, result[8], color, color2, result[9], color2, result[10], color2, result[11], color2, result[12], color2, result[13], color2, result[14], color2, color2, clear),
+	  'Ubuntu': 'color3, color3, color2, color3, color2, color3, result[0], color, color2, color3, result[1], color, color2, color3, result[2], color, color2, result[3], color, color2, result[4], color, color2, result[5], color, color2, result[6], color2, color, color2, result[7], color2, color, color2, result[8], color2, color, result[9], color2, color, color3, result[10], color2, color, color3, result[11], color, color3, result[12], color, color3, result[13], color, color3, result[14], color, color3, color, color3, color, color, color3, color, color3, color, color3, color, color, color, clear'}
+
 ###### Result #######
-print """%s
-%s               +                
-%s               #                %s
-%s              ###               %s
-%s             #####              %s
-%s             ######             %s
-%s            ; #####;            %s
-%s           +##.#####            %s
-%s          +##########           %s
-%s         ######%s#####%s##;         %s
-%s        ###%s############%s+        %s
-%s       #%s######   #######        %s
-%s     .######;     ;###;`\".      %s
-%s    .#######;     ;#####.       %s
-%s    #########.   .########`     %s
-%s   ######'           '######    %s
-%s  ;####                 ####;   %s
-%s  ##'                     '##   
-%s #'                         `#  
-%s """ % (color, color, color, result[0], color, result[1], color, result[2], color, result[3], color, result[4], color, result[5], color, result[6], color, color2, color, result[7], color, color2, color, result[8], color, color2, result[9], color2, result[10], color2, result[11], color2, result[12], color2, result[13], color2, result[14], color2, color2, clear)
+logos = {'Arch Linux': ["%s ",
+"%s               +                ",
+"%s               #                %s",
+"%s              ###               %s",
+"%s             #####              %s",
+"%s             ######             %s",
+"%s            ; #####;            %s",
+"%s           +##.#####            %s",
+"%s          +##########           %s",
+"%s         ######%s#####%s##;         %s",
+"%s        ###%s############%s+        %s",
+"%s       #%s######   #######        %s",
+"%s     .######;     ;###;`\".      %s",
+"%s    .#######;     ;#####.       %s",
+"%s    #########.   .########`     %s",
+"%s   ######'           '######    %s",
+"%s  ;####                 ####;   %s",
+"%s  ##'                     '##   ",
+"%s #'                         `#  ",
+"%s "],
+	  'Ubuntu': [" ",
+"%s                              ++++++           ",
+"%s                             ++++++++          ",
+"%s                  ++++++++++ %s++++++++          ",
+"%s                ++++++++++++ %s++++++++          %s",
+"%s             ++  %s++++++++++++ %s++++++           %s",
+"%s           +++++  %s++++++++++++ %s^^^^            %s",
+"%s          +++++++  %s+++++++++++++++++++         %s",
+"%s         +++++++++          %s+++++++++++        %s",
+"%s        ++++++++++            %s++++++++++       %s",
+"%s        ++++++++               %s++++++++++      %s",
+"%s  ++++++ %s++++++                 %s++++++++++     %s",
+"%s ++++++++ %s+++++                  %s+++++++++     %s",
+"%s +++++++++ %s++++                                %s",
+"%s ++++++++ %s+++++                  %s+++++++++     %s",
+"%s  ++++++ %s++++++                 %s++++++++++     %s",
+"%s        ++++++++               %s++++++++++      %s",
+"%s        +++++++++             %s++++++++++       %s",
+"%s         +++++++++         %s++++++++++++        %s",
+"%s          +++++++  %s+++++++++++++++++++         ",
+"%s           +++++  %s++++++++++++ %s,,,,            ",
+"%s             ++  %s++++++++++++ %s++++++           ",
+"%s                ++++++++++++ %s++++++++          ",
+"%s                  ++++++++++ %s++++++++          ",
+"%s                             ++++++++          ",
+"%s                              ++++++           ",
+"%s "]}
+
+logo = ''
+for line in logos[os]:
+	logo += line + '\n'
+
+print logo % colors[os]
 
 if screen == 'True':
 	screenshot()
