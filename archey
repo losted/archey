@@ -14,7 +14,7 @@ import subprocess, optparse, re, sys
 from subprocess import Popen, PIPE
 from optparse import OptionParser
 from getpass import getuser
-from time import ctime
+from time import ctime, sleep
 
 if sys.version_info[1] < 6:
 	from future import with_statement
@@ -121,7 +121,14 @@ def ram_display():
 # Screenshot Function 
 screen = '%s' % options.screenshot
 def screenshot():
+	print 'Screenshotting in'
+	list = range(1,6)
+	list.reverse()
+	for x in list:
+		print '%s...' % x
+		sleep(1)
 	subprocess.check_call(['import', '-window', 'root', ctime().replace(' ','_')+'.jpg'])
+	print 'Say Cheeze!'
 
 # Operating System Function
 def os_display():
