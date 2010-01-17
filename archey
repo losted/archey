@@ -26,6 +26,7 @@ display = [
 	'kernel',  # Display Kernel Version
 #	'battery', # Display Battery Usage [Requires 'acpi']
 	'uptime',  # Display System Uptime
+	'coretemp', # Display System Core tempature
 	'wm',  # Display Window Manager
 	'de', # Display Desktop Environment
 	'packages', # Display Number of Packages Installed
@@ -128,7 +129,12 @@ def screenshot():
 		print '%s...' % x
 		sleep(1)
 	subprocess.check_call(['import', '-window', 'root', ctime().replace(' ','_')+'.jpg'])
-	print 'Say Cheeze!'
+	print 'Say Cheese!'
+
+# Core Temp Function
+def coretemp_display():
+	tempinfo = Popen(['sensors', 'coretemp-*'], stdout=PIPE).communicate()[0].split('\n')[2].split(':')[1].replace(' ','').split('(')[0]
+	output ('Core Temp', tempinfo)
 
 # Operating System Function
 def os_display():
