@@ -133,8 +133,12 @@ def screenshot():
 
 # Core Temp Function
 def coretemp_display():
-	tempinfo = Popen(['sensors', 'coretemp-*'], stdout=PIPE).communicate()[0].split('\n')[2].split(':')[1].replace(' ','').split('(')[0]
-	output ('Core Temp', tempinfo)
+	tempinfo = Popen(['sensors', 'coretemp-*'], stdout=PIPE).communicate()[0].split('\n')[2::4]
+	temps = ''
+	for line in tempinfo:
+		temps = temps + line.split(':')[1].replace(' ','').split('(')[0]+ ','
+	temps = temps[:-1]
+	output ('Core Temp', temps)
 
 # Operating System Function
 def os_display():
@@ -260,7 +264,7 @@ colors = {'Arch Linux': (color, color, color, result[0], color, result[1], color
 	  'Ubuntu': 'color3, color3, color2, color3, color2, color3, result[0], color, color2, color3, result[1], color, color2, color3, result[2], color, color2, result[3], color, color2, result[4], color, color2, result[5], color, color2, result[6], color2, color, color2, result[7], color2, color, color2, result[8], color2, color, result[9], color2, color, color3, result[10], color2, color, color3, result[11], color, color3, result[12], color, color3, result[13], color, color3, result[14], color, color3, color, color3, color, color, color3, color, color3, color, color3, color, color, color, clear'}
 
 ###### Result #######
-logos = {'Arch Linux': ['''%s 
+logos = {'Arch Linux': '''%s 
 %s               +                
 %s               #                %s
 %s              ###               %s
@@ -279,8 +283,8 @@ logos = {'Arch Linux': ['''%s
 %s  ;####                 ####;   %s
 %s  ##'                     '##   
 %s #'                         `#  
-%s '''],
-	  'Ubuntu': ['''
+%s ''',
+	  'Ubuntu': '''
 %s                              ++++++           
 %s                             ++++++++          
 %s                  ++++++++++ %s++++++++          
@@ -306,9 +310,9 @@ logos = {'Arch Linux': ['''%s
 %s                  ++++++++++ %s++++++++           
 %s                             ++++++++          
 %s                              ++++++           
-%s ''']}
+%s '''}
 
-print logos % colors[os]
+print logos[os] % colors[os]
 
 if screen == 'True':
 	screenshot()
