@@ -126,7 +126,8 @@ def screenshot():
 	list = range(1,6)
 	list.reverse()
 	for x in list:
-		print '%s...' % x
+		print '%s...' % x,
+		sys.stdout.flush()
 		sleep(1)
 	subprocess.check_call(['import', '-window', 'root', ctime().replace(' ','_')+'.jpg'])
 	print 'Say Cheese!'
