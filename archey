@@ -82,7 +82,8 @@ wm_dict = {'awesome': 'Awesome',
            'wmaker': 'Window Maker',
            'wmii': 'wmii',
            'xfwm4': 'Xfwm',
-           'xmonad': 'xmonad'}
+           'xmonad': 'xmonad',
+	   'scrotwm': 'ScrotWM'}
 
 sh_dict = {'zsh': 'Z-Shell',
            'bash': 'Bash',
@@ -137,8 +138,8 @@ def screenshot():
 def coretemp_display():
 	tempinfo = Popen(['sensors', 'coretemp-*'], stdout=PIPE).communicate()[0].split('\n')[2::4]
 	temps = ''
-	orange = '\x1b[1;31m'
-	red = '\x1b[1;33m'
+	orange = '\x1b[1;33m'
+	red = '\x1b[1;31m'
 	blue = '\x1b[1;34m'
 	for line in tempinfo:
 		value =  line.split(':')[1].replace(' ','').split('(')[0]
