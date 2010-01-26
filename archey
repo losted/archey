@@ -15,6 +15,7 @@ from subprocess import Popen, PIPE
 from optparse import OptionParser
 from getpass import getuser
 from time import ctime, sleep
+from os import getenv
 
 if sys.version_info[1] < 6:
 	from future import with_statement
@@ -83,14 +84,6 @@ wm_dict = {'awesome': 'Awesome',
            'xfwm4': 'Xfwm',
            'xmonad': 'xmonad',
 	   'scrotwm': 'ScrotWM'}
-
-sh_dict = {'zsh': 'Z-Shell',
-           'bash': 'Bash',
-           'dash': 'Dash',
-           'fish': 'Fish',
-           'ksh': 'Korn Shell',
-           'jsh': 'Job control shell',
-           'tcsh': 'The C Shell'}
 
 os_dict = {'arch': 'Arch Linux',
 	   'ubuntu': 'Ubuntu',
@@ -235,11 +228,9 @@ def wm_display():
 	output ('WM', wm)
 
 # Shell Function
-def sh_display():
-  sh = 'None found'
-  for key in processes: 
-    if key in sh_dict.keys(): sh = sh_dict[key]
-  output ('Shell', sh)
+def sh_display():	
+	shell = os.getenv("SHELL")].split('/')[-1]
+	output ('Shell', shell)
 
 # Packages Function
 def packages_display():
