@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# archey3 [version 0.2-1]
+# archey3 [version 0.2-2]
 #
 # Copyright 2010 Melik Manukyan <melik@archlinux.us>
 # Copyright 2010 Laurie Clark-Michalek <bluepeppers@archlinux.us>
@@ -313,12 +313,15 @@ class deDisplay(display):
         return "DE", DE_DICT[de]
 
 class mpdDisplay(display):
-    command_line = "mpc stats"
+    """Displays certain stat about MPD database. If mpd not installed, output nothing."""
+    command_line = "mpc stats --host {arg1} --port {arg2}"
     
     def __init__(self, stat='songs', hostname='localhost', port='6600', parent=None):
         self.stat = stat
         self.hostname = hostname
         self.port = port
+        self.arg1 = hostname
+        self.arg2 = port
         self._parent = parent
         try:
             global mpd
@@ -330,25 +333,33 @@ class mpdDisplay(display):
     def run_command(self):
         if self.method == 'module':
             self.proccess = mpd.MPDClient()
-            self.proccess.connect(self.hostname, self.port)
+            try:
+                self.proccess.connect(self.hostname, self.port)
+            except Exception:
+                self.method == 'shell'
+                super().run_command()
         else:
             super().run_command()
     
     def render(self):
         if self.method == 'module':
             try:
-                return 'MPD {statname}'.format(statname=self.stat.title()), self.proccess.stats()[self.stat]
+                return '{statname} in MPD database'.format(statname=self.stat.title()), self.proccess.stats()[self.stat]
             except Exception:
-                return 'MPD {statname}'.format(statname=self.stat.title()), 'Error encountered'
+                return None
         else:
             super().render()
     
     def format_output(self, instring):
         lines = instring.split('\n')
         stats = {}
-        stats['artists'] = lines[0].split(':')[1].strip()
-        stats['albums'] = lines[1].split(':')[1].strip()
-        stats['songs'] = lines[2].split(':')[1].strip()
+        try:
+            stats['artists'] = lines[0].split(':')[1].strip()
+            stats['albums'] = lines[1].split(':')[1].strip()
+            stats['songs'] = lines[2].split(':')[1].strip()
+        #if people don't have mpc installed (= no mpd installed) then return None)
+        except ValueError:
+            return None
         
         return '{statname} in MPD database'.format(statname=self.stat.title()), stats[self.stat]
 
@@ -403,8 +414,10 @@ class Archey(object):
             if isinstance(out, list):
                 for o in out:
                     outputs.append(o)
-            else:
+            elif out is not None:
                 outputs.append(out)
+            else:
+                continue
         
         for i in range(18):
             if i < len(outputs):
