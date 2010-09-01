@@ -10,6 +10,35 @@
 # Simple python script to display an Archlinux logo in ASCII art 
 # Along with basic system information.
 
+# Display [Comment/Uncomment to Enable/Disable information.]
+# Protocols:
+#    uname:x = return output of `uname -x` (see UNAME_FLAG_MEANINGS for more info)
+#    sensors:x = return output of `sensors x`
+#    env:x = return value of env variable x
+#    fs:x = return space of partition at x
+#    mpd:stat,hostname,port = returns value of an mpd stat (options: artists|albums|songs)
+
+DISPLAY = [
+    'distro', # Display Operating System
+    'uname:n', # Display Machine Hostname
+    'uname:r',  # Display Kernel Version
+    'uptime',  # Display System Uptime
+    'sensors:coretemp-*', # Display System Core tempature
+    'wm',  # Display Window Manager
+    'de', # Display Desktop Environment
+    'packages', # Display Number of Packages Installed
+    'ram', # Display RAM Usage
+    'uname:p', # Display CPU Model
+    'env:shell', # Display Current Shell
+    'env:editor', # Display Editor, using EDITOR env 
+    'mpd:songs'
+#    'fs:/boot', # Display /boot Partition Usage
+#    'fs:/home', # Display /home Partition Usage
+#    'fs:/MOUNT/POINT', # Display * Partition, Edit To Your Needs
+    'fs:/', # Display / Partition Usage
+]
+
+
 # Import libraries
 import subprocess, optparse, re, sys
 from subprocess import Popen, PIPE
@@ -17,32 +46,6 @@ from optparse import OptionParser
 from getpass import getuser
 from time import ctime, sleep
 from os import getenv
-
-# Display [Comment/Uncomment to Enable/Disable information.]
-# Protocols:
-#    uname:x = return output of uname -x (see UNAME_FLAG_MEANINGS for more info)
-#    sensors:x = return output of sensors x
-#    env:x = return value of env variable x
-#    fs:x = return space of partition at x
-
-DISPLAY = [
-        'distro', # Display Operating System
-        'uname:n', # Display Machine Hostname
-        'uname:r',  # Display Kernel Version
-        'uptime',  # Display System Uptime
-        'sensors:coretemp-*', # Display System Core tempature
-        'wm',  # Display Window Manager
-        'de', # Display Desktop Environment
-        'packages', # Display Number of Packages Installed
-        'ram', # Display RAM Usage
-        'uname:p', # Display CPU Model
-        'env:shell', # Display Current Shell
-        'env:editor', # Display Editor, using EDITOR env 
-#	'fs:/boot', # Display /boot Partition Usage
-#	'fs:/home', # Display /home Partition Usage
-#	'fs:/MOUNT/POINT', # Display * Partition, Edit To Your Needs
-        'fs:/' # Display / Partition Usage
-        ]
 
 UNAME_FLAG_MEANINGS = {
     'a': 'System Infomation',
@@ -88,6 +91,7 @@ FUNC_MAPPINGS = {
     'ram': 'ramDisplay',
     'env': 'envDisplay',
     'fs': 'fsDisplay',
+    'mpd': 'mpdDisplay',
 }
 
 
@@ -308,6 +312,48 @@ class deDisplay(display):
                 break
         return "DE", DE_DICT[de]
 
+class mpdDisplay(display):
+    command_line = "mpc stats"
+    
+    def __init__(self, stat='songs', hostname='localhost', port='6600', parent=None):
+        self.stat = stat
+        self.hostname = hostname
+        self.port = port
+        self._parent = parent
+        try:
+            global mpd
+            import mpd
+            self.method = 'module'
+        except ImportError:
+            self.method = 'shell'
+    
+    def run_command(self):
+        if self.method == 'module':
+            self.proccess = mpd.MPDClient()
+            self.proccess.connect(self.hostname, self.port)
+        else:
+            super().run_command()
+    
+    def render(self):
+        if self.method == 'module':
+            try:
+                return 'MPD {statname}'.format(statname=self.stat.title()), self.proccess.stats()[self.stat]
+            except Exception:
+                return 'MPD {statname}'.format(statname=self.stat.title()), 'Error encountered'
+        else:
+            super().render()
+    
+    def format_output(self, instring):
+        lines = instring.split('\n')
+        stats = {}
+        stats['artists'] = lines[0].split(':')[1].strip()
+        stats['albums'] = lines[1].split(':')[1].strip()
+        stats['songs'] = lines[2].split(':')[1].strip()
+        
+        return '{statname} in MPD database'.format(statname=self.stat.title()), stats[self.stat]
+
+#------------ Functions -----------
+
 def screenshot():
         print('Screenshotting in')
         list = list(range(1,6))
@@ -323,7 +369,7 @@ def render(instance):
     instance.run_command()
     return instance.render()
 
-#create process list
+#------------ Display object ---------
 
 class Archey(object):
     def __init__(self, display=None, colorscheme='blue'):
