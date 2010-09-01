@@ -31,7 +31,7 @@ DISPLAY = [
     'uname:p', # Display CPU Model
     'env:shell', # Display Current Shell
     'env:editor', # Display Editor, using EDITOR env 
-    'mpd:songs'
+    'mpd:songs',
 #    'fs:/boot', # Display /boot Partition Usage
 #    'fs:/home', # Display /home Partition Usage
 #    'fs:/MOUNT/POINT', # Display * Partition, Edit To Your Needs
