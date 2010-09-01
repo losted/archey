@@ -120,7 +120,7 @@ WM_DICT = {
     'wmfs': 'Wmfs',
     'wmii': 'wmii',
     'xfwm4': 'Xfwm',
-    'xmonad': 'xmonad'
+    'xmonad': 'xmonad',
     '': 'None',
 }
 
