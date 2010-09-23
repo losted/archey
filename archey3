@@ -161,7 +161,10 @@ class display(object):
                 cmd = self.command_line.format(arg1=self.arg1)
             else:
                 cmd = self.command_line
-            self.proccess = Popen(cmd.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            try:
+                self.proccess = Popen(cmd.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            except Exception as e:
+                pass
     
     def render(self):
         (stdoutdata, stderrdata) = self.proccess.communicate(self.stdindata or None)
@@ -348,7 +351,10 @@ class mpdDisplay(display):
             except Exception:
                 return False
         else:
-            return super().render()
+            if hasattr(self, "proccess"):
+                return super().render()
+            else:
+                return None
     
     def format_output(self, instring):
         lines = instring.split('\n')
