@@ -77,7 +77,7 @@ LOGOS = {'Arch Linux': '''{c1}
 {c2}  ;####                 ####;   {results[15]}
 {c2}  ##'                     '##  {results[16]} 
 {c2} #'                         `#  {results[17]}
-{c2} '''
+\x1b[0m'''
 }
 
 FUNC_MAPPINGS = {
