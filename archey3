@@ -203,7 +203,7 @@ class fsDisplay(display):
         try:
             used_ = ''.join(c for c in used if c.isdigit())
             total_ = ''.join(c for c in total if c.isdigit())
-            persentage = 100 - (int(used_)/int(total_) * 100)
+            persentage = (int(used_)/int(total_) * 100)
         except:
             pass
         else:
