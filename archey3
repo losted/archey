@@ -220,7 +220,7 @@ class ramDisplay(display):
         total = int(ram[1])
         title = 'RAM'
         try:
-            persentage = 100 - (used / total * 100)
+            persentage = (used / total * 100)
         except:
             used += ' MB'
         else:
