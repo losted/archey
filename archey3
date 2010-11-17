@@ -466,21 +466,35 @@ class Archey(object):
         return outputs
 
     def format_item(self, item):
+        title = item[0].rstrip(':')
+        data = str(item[1]).rstrip()
+        
+        #if we're dealing with a fraction
+        if len(data.split('/')) == 2:
+            numerator = data.split('/')[0]
+            numerator = self.color(1, bold=True) + numerator + self.color('clear')
+            denominator = data.split('/')[1]
+            data = '/'.join((numerator, denominator))
+        
         return "{color}{title}:{clear} {data}".format(
                 color=self.color(1),
-                title=item[0].rstrip(':'),
-                data=str(item[1]).rstrip(),
+                title=title,
+                data=data,
                 clear=self.color("clear")
         )
         
-    def color(self, code):
-        if code == 1:
-            return '\x1b[1;3%sm' % self.colorcode
-        elif code == 2:
-            return '\x1b[0;3%sm' % self.colorcode
-        if code == "clear":
+    def color(self, code, bold=False):
+        if code == 2:
+            bold = True
+        first_bitty_bit = '\x1b[{0};'.format(int(not bold))
+        if code in range(3):
+            second_bitty_bit = '3{0}m'.format(self.colorcode)
+        elif code == "clear":
             return '\x1b[0m'
-        return '\x1b[0;3%sm' % COLORS[code]
+        else:
+            second_bitty_bit = '3{0}m'.format(COLORS[code])
+       
+        return first_bitty_bit + second_bitty_bit
 
 
 def main():
