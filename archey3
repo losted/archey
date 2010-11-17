@@ -188,6 +188,14 @@ class display(object):
 class fsDisplay(display):
     command_line = "df -TPh {arg1}"
     
+    conversions = {
+        'M': 1 * 10 ** 6,
+        'K': 1 * 10 ** 3,
+        'G': 1 * 10 ** 9,
+        'T': 1 * 10 ** 12,
+        'P': 1 * 10 ** 15,
+    }
+    
     def __init__(self, path='/', parent=None):
         self.arg1 = path
         self._parent = parent
@@ -201,9 +209,9 @@ class fsDisplay(display):
         mount = '/root' if self.arg1 == '/' else self.arg1 
         title = mount.split('/')[-1].title() + " FS"
         try:
-            used_ = ''.join(c for c in used if c.isdigit())
-            total_ = ''.join(c for c in total if c.isdigit())
-            persentage = (int(used_)/int(total_) * 100)
+            used_ = int(used[:-1]) * self.conversions[used[-1]]
+            total_ = int(total[:-1]) * self.conversions[total[-1]]
+            persentage = used_ / total_ * 100
         except:
             pass
         else:
