@@ -209,8 +209,9 @@ class fsDisplay(display):
         mount = '/root' if self.arg1 == '/' else self.arg1 
         title = mount.split('/')[-1].title() + " FS"
         try:
-            used_ = int(used[:-1]) * self.conversions[used[-1]]
-            total_ = int(total[:-1]) * self.conversions[total[-1]]
+            #convert to straight int
+            used_ = int(used[:-1]) * self.conversions[used[-1].upper()]
+            total_ = int(total[:-1]) * self.conversions[total[-1].upper()]
             persentage = used_ / total_ * 100
         except:
             pass
@@ -423,8 +424,11 @@ def screenshot():
         subprocess.check_call(['import', '-window', 'root', ctime().replace(' ','_')+'.jpg'])
 
 def render(instance):
-    instance.run_command()
-    return instance.render()
+    try:
+        instance.run_command()
+        return instance.render()
+    except:
+        return None
 
 #------------ Display object ---------
 
