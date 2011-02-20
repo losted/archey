@@ -421,7 +421,10 @@ def screenshot():
                     
         print('Say Cheese!')
         sys.stdout.flush()
-        subprocess.check_call(['import', '-window', 'root', ctime().replace(' ','_')+'.jpg'])
+        try:
+            subprocess.check_call(['import', '-window', 'root', ctime().replace(' ','_')+'.jpg'])
+        except subprocess.CalledProcessError as e:
+            print('Screenshot failed with return code {0}.'.format(e.returncode))
 
 def render(instance):
     try:
