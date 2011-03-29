@@ -141,7 +141,8 @@ COLORS = {
 }
 
 class display(object):
-    __slots__ = ['command_line', 'arg1', 'arg2', 'arg3', 'stdindata', 'proccess', '_parent']
+    __slots__ = ['command_line', 'arg1', 'arg2', 'arg3', 'stdindata',
+                 'proccess', '_parent', 'config']
     
     command_line = ''
     arg1 = ''
@@ -149,13 +150,15 @@ class display(object):
     arg3 = ''
     stdindata = ''
     
-    def __init__(self, parent=None):
+    def __init__(self, config, parent=None):
+        self.config = config
         self._parent = parent
     
     def run_command(self):
         if self.command_line:
             if '{arg3}' in self.command_line:
-                cmd = self.command_line.format(arg1=self.arg1, arg2=self.arg2, arg3=self.arg3)
+                cmd = self.command_line.format(arg1=self.arg1, arg2=self.arg2,
+                                               arg3=self.arg3)
             elif '{arg2}' in self.command_line:
                 cmd = self.command_line.format(arg1=self.arg1, arg2=self.arg2)
             elif '{arg1}' in self.command_line:
@@ -163,15 +166,18 @@ class display(object):
             else:
                 cmd = self.command_line
             try:
-                self.proccess = Popen(cmd.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                self.proccess = Popen(cmd.split(), stdin=PIPE, stdout=PIPE,
+                                      stderr=PIPE)
             except Exception as e:
                 pass
     
     def render(self):
-        (stdoutdata, stderrdata) = self.proccess.communicate(self.stdindata or None)
+        (stdoutdata, stderrdata) = self.proccess.communicate(self.stdindata
+                                                             or None)
         return self.format_output(stdoutdata.decode())
         
-    def color_me(self, output, number=None, low=30, low_color='green', medium=60, medium_color='yellow', high_color='red'):
+    def color_me(self, output, number=None, low=30, low_color='green',
+                 medium=60, medium_color='yellow', high_color='red'):
         if number is None and output.isdigit():
             number = int(output)
         elif number is None:
@@ -184,7 +190,8 @@ class display(object):
         elif medium < number:
             color = high_color
         
-        return '{0}{1}{2}'.format(self._parent.color(color), output, self._parent.color('clear'))
+        return '{0}{1}{2}'.format(self._parent.color(color), output,
+                                  self._parent.color('clear'))
 
 class fsDisplay(display):
     command_line = "df -TPh {arg1}"
@@ -218,14 +225,16 @@ class fsDisplay(display):
             pass
         else:
             used = self.color_me(used, persentage)
-        part = '{used} / {total} ({fstype})'.format(used=used, total=total, fstype=fstype)
+        part = '{used} / {total} ({fstype})'.format(used=used, total=total,
+                                                    fstype=fstype)
         return title, part
 
 class ramDisplay(display):
     command_line = "free -m"
     
     def format_output(self, instring):
-        ram = ''.join(line for line in str(instring).split('\n') if line.startswith('Mem:')).split()
+        ram = ''.join(line for line in str(instring).split('\n') if\
+                      line.startswith('Mem:')).split()
         used = int(ram[2]) - int(ram[5]) - int(ram[6])
         total = int(ram[1])
         title = 'RAM'
@@ -250,15 +259,19 @@ class sensorDisplay(display):
         
         out = []
         for line in tempinfo:
-            info = [re.sub("\s\s+", "", line) for line in line.split('  ') if line]
+            info = [re.sub("\s\s+", "", line) for line in line.split('  ') if\
+                    line]
             value = info[1]
             intvalue = int(value[:3])
             if intvalue > 45:
-                temp = self._parent.color("red") + info[1] + self._parent.color("clear")
+                temp = (self._parent.color("red") + info[1] +
+                        self._parent.color("clear"))
             elif intvalue in range(30, 45):
-                temp = self._parent.color("magenta") + info[1] + self._parent.color("clear")
+                temp = (self._parent.color("magenta") + info[1] +
+                        self._parent.color("clear"))
             else:
-                temp = self._parent.color("green") + info[1] + self._parent.color("clear")
+                temp = (self._parent.color("green") + info[1] +
+                        self._parent.color("clear"))
             out.append((info[0], temp))
         return out
 
@@ -293,7 +306,8 @@ class uptimeDisplay(display):
             fuptime = fuptime % 3600
             minute = int(fuptime / 60)
             uptime = '{daystring}{hours}:{mins:02d}'.format(
-                daystring='{days} day{s}, '.format(days=day, s='s' if day > 1 else '') if day else '',
+                daystring='{days} day{s}, '.format(days=day, s=('s' if day > 1
+                                                     else '')) if day else '',
                 hours = hour, mins = minute
             )
             return "Uptime", uptime
@@ -328,7 +342,8 @@ class proccessCheck(display):
     def run_command(self):
         super().run_command()
         out = str(self.proccess.communicate()[0])
-        self._processes = set([line.split()[3] for line in out.split('\\n') if len(line.split()) == 4])
+        self._processes = set([line.split()[3] for line in out.split('\\n') if\
+                              len(line.split()) == 4])
     
     def __call__(self, proc):
         if proc in self._processes:
@@ -354,10 +369,14 @@ class deDisplay(display):
         return "DE", DE_DICT[de]
 
 class mpdDisplay(display):
-    """Displays certain stat about MPD database. If mpd not installed, output nothing."""
+    """
+    Displays certain stat about MPD database. If mpd not installed, output
+    nothing.
+    """
     command_line = "mpc stats --host {arg1} --port {arg2}"
     
-    def __init__(self, stat='songs', hostname='localhost', port='6600', parent=None):
+    def __init__(self, stat='songs', hostname='localhost', port='6600',
+                 parent=None):
         self.stat = stat
         self.hostname = hostname
         self.port = port
@@ -385,7 +404,8 @@ class mpdDisplay(display):
     def render(self):
         if self.method == 'module':
             try:
-                return '{statname} in MPD database'.format(statname=self.stat.title()), self.proccess.stats()[self.stat]
+                return '{statname} in MPD database'.format(
+                statname=self.stat.title()), self.proccess.stats()[self.stat]
             except Exception:
                 return False
         else:
@@ -401,11 +421,12 @@ class mpdDisplay(display):
             stats['artists'] = lines[0].split(':')[1].strip()
             stats['albums'] = lines[1].split(':')[1].strip()
             stats['songs'] = lines[2].split(':')[1].strip()
-        #if people don't have mpc installed (= no mpd installed) then return None)
+        #if people don't have mpc installed then return None)
         except ValueError:
             return False
         
-        return '{statname} in MPD database'.format(statname=self.stat.title()), stats[self.stat]
+        return ('{statname} in MPD database'.format(statname=self.stat.title()),
+               stats[self.stat])
 
 #------------ Config    -----------
 
@@ -482,9 +503,11 @@ def screenshot():
         print('Say Cheese!')
         sys.stdout.flush()
         try:
-            subprocess.check_call(['import', '-window', 'root', ctime().replace(' ','_')+'.jpg'])
+            subprocess.check_call(['import', '-window', 'root',
+                                   ctime().replace(' ','_')+'.jpg'])
         except subprocess.CalledProcessError as e:
-            print('Screenshot failed with return code {0}.'.format(e.returncode))
+            print('Screenshot failed with return code {0}.'.format(
+                e.returncode))
 
 def render(instance):
     try:
@@ -547,7 +570,8 @@ class Archey(object):
         #if we're dealing with a fraction
         if len(data.split('/')) == 2:
             numerator = data.split('/')[0]
-            numerator = self.color(1, bold=True) + numerator + self.color('clear')
+            numerator = (self.color(1, bold=True) + numerator +
+                         self.color('clear'))
             denominator = data.split('/')[1]
             data = '/'.join((numerator, denominator))
         
@@ -576,8 +600,9 @@ def main():
     global processes
     processes = render(proccessCheck())
     
-    parser = OptionParser(usage='%prog [-c COLOR] [-s, --screenshot] [-d, --display]', 
-            description="""Archey is a utility to take """,
+    parser = OptionParser(
+        usage='%prog [-c COLOR] [-s, --screenshot] [-d, --display]', 
+        description="""Archey is a utility to take """,
         version="%prog 0.2-1")
     parser.add_option('-c',
             action='store', default='blue', type='choice', dest='color',
@@ -589,13 +614,18 @@ def main():
                      'magenta',
                      'cyan',
                      'white'),
-            help='choose a color: black, red, green, yellow, blue, magenta, cyan, white [Default: blue]')
+            help="""choose a color: black, red, green, yellow, blue, magenta,\
+            cyan, white [Default: blue]""")
     parser.add_option('-s', '--screenshot',
             action='store_true', dest='screenshot', help='Take a screenshot')
     parser.add_option('-d', '--display',
-            action='store', dest='display', help='Define info to be displayed by archey. DISPLAY must be in the \
-format "archey_display_module:arg1,arg2,arg3.second_display_module". Availible display modules are uname, fs, env, \
-uptime, sensors, ram, de and wm. See the DISPLAY list in the archey source file for more info.')
+            action='store', dest='display',
+                      help="""Define info to be displayed by archey. DISPLAY
+                      must be in the format "archey_display_module:arg1,arg2,arg
+                      3.second_display_module". Availible display modules are un
+                      ame, fs, env, uptime, sensors, ram, de and wm.
+                      See the DISPLAY list in the archey source file for more
+                      info.""")
     (options, args) = parser.parse_args()
     
     if options.display:
