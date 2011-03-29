@@ -197,15 +197,23 @@ class fsDisplay(display):
     command_line = "df -TPh {arg1}"
     
     conversions = {
-        'M': 1 * 10 ** 6,
-        'K': 1 * 10 ** 3,
-        'G': 1 * 10 ** 9,
-        'T': 1 * 10 ** 12,
-        'P': 1 * 10 ** 15,
+        'binary': {
+               'KB': 2 ** 10,
+               'MB': 2 ** 20,
+               'GB': 2 ** 30,
+               'TB': 2 ** 40,
+               },
+        'si': {
+            'KB': 10 ** 3,
+            'MB': 10 ** 6,
+            'GB': 10 ** 9,
+            'TB': 10 ** 12,
+            },
     }
     
-    def __init__(self, path='/', parent=None):
+    def __init__(self, config, path='/', parent=None):
         self.arg1 = path
+        self.config = config
         self._parent = parent
     
     def format_output(self, instring):
@@ -213,13 +221,15 @@ class fsDisplay(display):
         used = values[3]
         total = values[2]
         fstype = values[1]
+        conversion_type = self.config.get('fs', 'unit').lower()
+        conversions = self.conversions[conversion_type]
         
         mount = '/root' if self.arg1 == '/' else self.arg1 
         title = mount.split('/')[-1].title() + " FS"
         try:
             #convert to straight int
-            used_ = int(used[:-1]) * self.conversions[used[-1].upper()]
-            total_ = int(total[:-1]) * self.conversions[total[-1].upper()]
+            used_ = int(used[:-1]) * conversions[used[-1].upper()]
+            total_ = int(total[:-1]) * conversions[total[-1].upper()]
             persentage = used_ / total_ * 100
         except:
             pass
@@ -250,9 +260,15 @@ class ramDisplay(display):
 class sensorDisplay(display):
     command_line = "sensors {arg1}"
     
-    def __init__(self, sensors="coretemp-*", parent=None):
-        self.arg1 = sensors
+    def __init__(self, config, sensors='', parent=None):
+        self.config = config
         self._parent = parent
+        arg_from_conf = config.get('sensor', 'sensor', 'coretemp-*')
+        arg_from_arg = sensors
+        if arg_from_arg:
+            self.arg1 = arg_from_arg
+        else:
+            self.arg1 = arg_from_conf
     
     def format_output(self, instring):
         tempinfo = instring.split('\n')[2::4]
@@ -289,9 +305,16 @@ class unameDisplay(display):
     command_line = "uname {arg1}"
     
     def __init__(self, config, flag=False, parent=None):
-        self.arg1 = '-' + flag if flag else ''
         self.config = config
         self._parent = parent
+        arg_from_conf = config.get('uname', 'argument', '')
+        arg_from_arg = flag
+        if arg_from_arg:
+            self.arg1 = '-' + arg_from_arg
+        elif arg_from_conf:
+            self.arg1 = '-' + arg_from_conf
+        else:
+            self.arg1 = ''
     
     def format_output(self, instring):
         return (UNAME_FLAG_MEANINGS[self.arg1[1]], instring)
@@ -378,35 +401,29 @@ class mpdDisplay(display):
     """
     command_line = "mpc stats --host {arg1} --port {arg2}"
     
-    def __init__(self, config, stat='songs', hostname='localhost', port='6600',
-                 parent=None):
+    def __init__(self, config, stat='songs', parent=None):
         self.stat = stat
-        self.hostname = hostname
-        self.port = port
+        self.hostname = config.get('mpd', 'host', 'localhost')
+        self.port = int(config.get('mpd', 'port', 8800))
         self.arg1 = hostname
         self.arg2 = port
+        self.method = config.get('mpd', 'method', 'mpc')
         self.config = config
         self._parent = parent
-        try:
-            global mpd
-            import mpd
-            self.method = 'module'
-        except ImportError:
-            self.method = 'shell'
     
     def run_command(self):
-        if self.method == 'module':
+        if self.method == 'python3mpd':
             self.proccess = mpd.MPDClient()
             try:
                 self.proccess.connect(self.hostname, self.port)
             except Exception:
-                self.method == 'shell'
+                self.method == 'mpc'
                 super().run_command()
         else:
             super().run_command()
     
     def render(self):
-        if self.method == 'module':
+        if self.method == 'python3mpd':
             try:
                 return '{statname} in MPD database'.format(
                 statname=self.stat.title()), self.proccess.stats()[self.stat]
@@ -447,10 +464,6 @@ class ArcheyConfigParser(configparser.SafeConfigParser):
                          env:editor, df:/, mpd:albums
                          """
                          },
-                'mpd': {'host': 'localhost',
-                        'port': '8800',
-                        'method': 'mpc',
-                        },
                 }
     
     def __init__(self):
