@@ -40,7 +40,7 @@ DISPLAY = [
 
 
 # Import libraries
-import subprocess, optparse, re, sys
+import subprocess, optparse, re, sys, configparser
 from subprocess import Popen, PIPE
 from optparse import OptionParser
 from getpass import getuser
@@ -406,6 +406,65 @@ class mpdDisplay(display):
             return False
         
         return '{statname} in MPD database'.format(statname=self.stat.title()), stats[self.stat]
+
+#------------ Config    -----------
+
+class ArcheyConfigParser(configparser.SafeConfigParser):
+    """
+    A parser for the archey config file.
+    """
+
+    defaults = {'core': {'align': 'top',
+                         'color': 'blue',
+                         'modules':
+                         """
+                         os, hostname, kernel, uptime, wm, de, pacman, ram, cpu,
+                         env:editor, df:/, mpd:albums
+                         """
+                         },
+                'mpd': {'host': 'localhost',
+                        'port': '8800',
+                        'method': 'mpc',
+                        },
+                }
+    
+    def __init__(self):
+        super(ArcheyConfigParser, self).__init__()
+
+    def read(self, file_location="$XDG_CONFIG_HOME/archey3.cfg"):
+        """
+        Loads the config options stored in at file_location. If file_location
+        does not exist, it will attempt to load from the default config location
+        ($XDG_CONFIG_HOME/archey3.cfg). If that does not exist, it will write a
+        default config file to $XDG_CONFIG_HOME/archey3.cfg.
+        """
+        config_location = os.path.expandvars(os.path.expanduser(file_location))
+        loaded = super(ArcheyConfigParser, self).read(config_location)
+        if file_location == "$XDG_CONFIG_HOME/archey3.cfg":
+            self.load_default_config()
+            self.write_config(file_location)
+        if not loaded:
+            #Try with default
+            loaded = super(ArcheyConfigParser, self).read()
+
+    def load_default_config(self):
+        """
+        Loads the config options stored at self.defaults.
+        """
+        for section, values in self.defaults.iteritems():
+            for option, value in values.iteritems():
+                #strip any excess spaces
+                while value.find('  ') != -1:
+                    value = value.replace('  ', ' ')
+                self.set(section, option, value)
+
+    def write_config(self, location):
+        """
+        Writes the current config to the given location.
+        """
+        with open(location, 'wb') as configfile:
+            self.write(configfile)
+    
 
 #------------ Functions -----------
 
