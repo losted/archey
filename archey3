@@ -378,6 +378,8 @@ class proccessCheck(display):
         
 class wmDisplay(display):
     def render(self):
+        if not self.config.get('wm', 'manual', False):
+            return "WM", self.config.get('de', 'manual')
         wm = ''
         for key in WM_DICT.keys():
             if processes(key):
@@ -387,6 +389,8 @@ class wmDisplay(display):
 
 class deDisplay(display):
     def render(self):
+        if not self.config.get('de', 'manual', False):
+            return "DE", self.config.get('de', 'manual')
         de = ''
         for key in DE_DICT.keys():
             if processes(key):
