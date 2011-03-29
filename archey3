@@ -120,6 +120,7 @@ WM_DICT = {
     'pekwm': 'PekWM',
     'ratpoison': 'ratpoison',
     'scrotwm': 'ScrotWM',
+    'subtle': 'subtle',
     'wmaker': 'Window Maker',
     'wmfs': 'Wmfs',
     'wmii': 'wmii',
