@@ -276,8 +276,9 @@ class sensorDisplay(display):
         return out
 
 class envDisplay(display):
-    def __init__(self, env='SHELL', parent=None):
+    def __init__(self, config, env='SHELL', parent=None):
         self.arg1 = env
+        self.config = config
         self._parent = parent
     
     def render(self):
@@ -287,8 +288,9 @@ class envDisplay(display):
 class unameDisplay(display):
     command_line = "uname {arg1}"
     
-    def __init__(self, flag=False, parent=None):
+    def __init__(self, config, flag=False, parent=None):
         self.arg1 = '-' + flag if flag else ''
+        self.config = config
         self._parent = parent
     
     def format_output(self, instring):
@@ -335,8 +337,9 @@ class proccessCheck(display):
     
     render = lambda self: self
     
-    def __init__(self, parent=None):
+    def __init__(self, config, parent=None):
         self.arg1 = getuser()
+        self.config = config
         self._parent = parent
     
     def run_command(self):
@@ -375,13 +378,14 @@ class mpdDisplay(display):
     """
     command_line = "mpc stats --host {arg1} --port {arg2}"
     
-    def __init__(self, stat='songs', hostname='localhost', port='6600',
+    def __init__(self, config, stat='songs', hostname='localhost', port='6600',
                  parent=None):
         self.stat = stat
         self.hostname = hostname
         self.port = port
         self.arg1 = hostname
         self.arg2 = port
+        self.config = config
         self._parent = parent
         try:
             global mpd
