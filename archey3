@@ -471,8 +471,8 @@ class ArcheyConfigParser(configparser.SafeConfigParser):
                          'color': 'blue',
                          'display_modules':
                          """\
-distro(), uname(n), distro(r), uptime(), wm(), de(), packages(), ram(),\
- uname(p), env(editor), df(/), mpd(albums)"""
+distro(), uname(n), uname(r), uptime(), wm(), de(), packages(), ram(),\
+ uname(p), env(editor), fs(/), mpd(albums)"""
                          },
                 }
     
@@ -492,6 +492,7 @@ distro(), uname(n), distro(r), uptime(), wm(), de(), packages(), ram(),\
         if file_location == None and not loaded:
             self.load_default_config()
             self.write_config(config_location)
+            return [config_location]
         if not loaded:
             #Try with default
             loaded = super(ArcheyConfigParser, self).read()
