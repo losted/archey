@@ -57,7 +57,7 @@ LOGOS = {'Arch Linux': '''{c1}
 {c2}    #########.   .########`     {results[13]}
 {c2}   ######'           '######    {results[14]}
 {c2}  ;####                 ####;   {results[15]}
-{c2}  ##'                     '##  {results[16]} 
+{c2}  ##'                     '##   {results[16]} 
 {c2} #'                         `#  {results[17]}
 \x1b[0m'''
 }
@@ -565,6 +565,7 @@ class Archey(object):
     
     def render(self):
         results = self.prepare_results()
+        results = self.arrange_results(results)
         
         return LOGOS[self.distro_name].format(c1=self.color(1),
                                               c2=self.color(2),
@@ -590,6 +591,23 @@ class Archey(object):
         
         outputs = [self.format_item(line) for line in outputs] 
         return outputs + [""] * (18 - len(outputs))
+    
+    def arrange_results(self, results):
+        """
+        Arranges the results as specified in the config file.
+        """
+        arrangement = self.config.get("core", "align", fallback="top")
+        if arrangement == "top":
+            return results
+        elif arrangement == "bottom":
+            return results[::-1]
+        elif arrangement == "center":
+            actuall_res = [res for res in results if res]
+            offset = [""] * int((len(results) - len(actuall_res)) / 2)
+            return (offset + actuall_res +
+                    [""] * (len(results) - len(actuall_res)))
+        else:
+            return results
     
     def parse_display(self):
         """
