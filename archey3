@@ -10,14 +10,6 @@
 # Simple python script to display an Archlinux logo in ASCII art 
 # Along with basic system information.
 
-# Display [Comment/Uncomment to Enable/Disable information.]
-# Protocols:
-#    uname:x = return output of `uname -x` (see UNAME_FLAG_MEANINGS for more info)
-#    sensors:x = return output of `sensors x`
-#    env:x = return value of env variable x
-#    fs:x = return space of partition at x
-#    mpd:stat,hostname,port = returns value of an mpd stat (options: artists|albums|songs)
-
 # Import libraries
 import subprocess, optparse, re, sys, configparser
 from subprocess import Popen, PIPE
