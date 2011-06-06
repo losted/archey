@@ -552,7 +552,8 @@ class Archey(object):
         self.logger = Logger("Core", self.log_level)
         
         self.display = config.get("core", "display_modules")
-        colorscheme = options.color or config.get("core", "color")
+        colorscheme = options.color or config.get(
+            "core", "color", fallback="blue")
         for key in COLORS.keys():
             if key == colorscheme:
                 self.colorcode = COLORS[key]
@@ -692,7 +693,7 @@ def main():
  screenshots""",
         version="%prog 0.3")
     parser.add_option('-c', '--color',
-            action='store', default='blue', type='choice', dest='color',
+            action='store', type='choice', dest='color',
             choices=('black',
                      'red',
                      'green',
