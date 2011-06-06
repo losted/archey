@@ -155,6 +155,7 @@ class display(object):
                 cmd = self.command_line.format(arg1=self.arg1)
             else:
                 cmd = self.command_line
+            
             try:
                 self.process = Popen(cmd.split(), stdin=PIPE, stdout=PIPE,
                                       stderr=PIPE)
@@ -443,7 +444,7 @@ class mpdDisplay(display):
             self.logger.error("Did not get any arguments, require one," +
                               " the stat to display.")
         self.arg1 = self.config.get('mpd', 'host', fallback='localhost')
-        self.arg2 = self.config.getint('mpd', 'port', fallback=8800)
+        self.arg2 = self.config.getint('mpd', 'port', fallback=6600)
     
     def format_output(self, instring):
         lines = instring.split('\n')
