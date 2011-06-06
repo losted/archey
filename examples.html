@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+
+  <title>Archey3</title>
+
+  <style type="text/css">
+    body {
+      margin-top: 1.0em;
+      background-color: #9fe123;
+      font-family: Helvetica, Arial, FreeSans, san-serif;
+      color: #000000;
+    }
+    #container {
+      margin: 0 auto;
+      width: 700px;
+    }
+    h1 { font-size: 3.8em; color: #601edc; margin-bottom: 3px; }
+    h1 .small { font-size: 0.4em; }
+    h1 a { text-decoration: none }
+    h2 { font-size: 1.5em; color: #601edc; }
+    h3 { text-align: center; color: #601edc; }
+    a { color: #601edc; }
+    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+    .download { float: right; }
+    pre { background: #000; color: #fff; padding: 15px;}
+    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+    .footer { text-align:center; padding-top:30px; font-style: italic; }
+  </style>
+</head>
+
+<body>
+  <H1>Examples</h1>
+  <p>Archey3 is highly customisable, meaning that many different results can be achived. Here are some examples (if you wish to submit an example, please either email bluepeppers@archlinux.us with your screenshot or open a pull request on our <a href="https://github.com/bluepeppers/archey3/tree/gh-pages">github repo</a>.</p>
+  
+  <H2>Default</h2>
+  <a href="images/default_config.jpg"><img src="images/default_config.jpg"/></a>
+<p>Config:</p>
+<pre>[core]
+color = blue
+align = top
+display_modules = distro(), uname(n), uname(r), uptime(), wm(), de(), packages(), ram(), uname(p), env(editor), fs(/), mpd(albums)</pre>
+
+<h2>Yellow, centered</h2>
+<a href="images/yellow_centered.jpg"><img src="images/yellow_centered.jpg"/></a>
+
+<p>Config:</p>
+<pre>[core]
+color = yellow
+align = center
+display_modules = distro(), uname(n), uname(r), uptime(), wm(), ram(), fs(/), fs(/home), fs(/media/Music)</pre>
+</body>
+</html>
+
