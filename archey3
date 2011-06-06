@@ -107,7 +107,7 @@ WM_DICT = {
     'wmfs': 'Wmfs',
     'wmii': 'wmii',
     'xfwm4': 'Xfwm',
-    'xmonad': 'xmonad',
+    re.compile('xmonad-*'): 'xmonad',
     '': 'None',
 }
 
@@ -184,8 +184,13 @@ class display(object):
         return '{0}{1}{2}'.format(self._parent.color(color), output,
                                   self._parent.color('clear'))
     
+    regex_class = re.compile("").__class__
     def process_exists(self, key):
         global PROCESSES
+        if isinstance(key, self.regex_class):
+            for proc in PROCESSES._processes:
+                if key.search(proc):
+                    return True
         return PROCESSES(key)
 
 
@@ -194,16 +199,16 @@ class fsDisplay(display):
     
     conversions = {
         'binary': {
-               'KiB': 2 ** 10,
-               'MiB': 2 ** 20,
-               'GiB': 2 ** 30,
-               'TiB': 2 ** 40,
+               'K': 2 ** 10,
+               'M': 2 ** 20,
+               'G': 2 ** 30,
+               'T': 2 ** 40,
                },
         'si': {
-            'KB': 10 ** 3,
-            'MB': 10 ** 6,
-            'GB': 10 ** 9,
-            'TB': 10 ** 12,
+            'K': 10 ** 3,
+            'M': 10 ** 6,
+            'G': 10 ** 9,
+            'T': 10 ** 12,
             },
     }
     
@@ -225,18 +230,25 @@ class fsDisplay(display):
         conversions = self.conversions[conversion_type]
         
         mount = '/root' if self.arg1 == '/' else self.arg1 
-        title = mount.split('/')[-1].title() + " FS"
+        title = mount.split('/')[-1].title()
         try:
             #convert to straight int
             used_ = int(used[:-1]) * conversions[used[-1].upper()]
             total_ = int(total[:-1]) * conversions[total[-1].upper()]
             persentage = used_ / total_ * 100
-        except:
-            pass
+        except Exception as e:
+            self.logger.error(
+                "Could not colorize output, errored with {0}".format(e))
         else:
             used = self.color_me(used, persentage)
-        part = '{used} / {total} ({fstype})'.format(used=used, total=total,
-                                                    fstype=fstype)
+        
+        if self.config.getboolean("fs", "persentage", fallback=True):
+            part = '{used} / {total} ({persentage}%) ({fstype})'.format(
+                used=used, total=total, persentage=int(persentage),
+                fstype=fstype)
+        else:
+            part = '{used} / {total} ({fstype})'.format(
+                used=used, total=total, fstype=fstype)
         return title, part
 
 class ramDisplay(display):
