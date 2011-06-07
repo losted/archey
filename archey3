@@ -19,7 +19,16 @@ from time import ctime, sleep
 from os import getenv
 import re
 import os.path
-from logbook import Logger
+
+try:
+    from logbook import Logger
+except ImportError:
+    class Logger(object):
+        def __init__(self, name, level=0):
+            self.name = name
+            self.level = level
+        debug = info = warn = warning = notice = error = exception = \
+            critical = log = lambda *a, **kw: None
 
 UNAME_FLAG_MEANINGS = {
     'a': 'System Infomation',
