@@ -161,7 +161,7 @@ class display(object):
                 self.process = Popen(cmd.split(), stdin=PIPE, stdout=PIPE,
                                       stderr=PIPE)
             except Exception as e:
-                pass
+                self.logger.error("Could not run command {0}".format(cmd))
     
     def render(self):
         (stdoutdata, stderrdata) = self.process.communicate(self.stdindata
@@ -456,7 +456,8 @@ class mpdDisplay(display):
             stats['songs'] = lines[2].split(':')[1].strip()
         #if people don't have mpc installed then return None)
         except:
-            return False
+            self.logger.error("Could not parse mpc output, is mpc installed?")
+            return
         
         return ('{statname} in MPD database'.format(statname=self.stat.title()),
                stats[self.stat])
