@@ -21,7 +21,7 @@ import re
 import os.path
 
 try:
-    from logbook import Logger
+    from logbook import Logger, lookup_level
 except ImportError:
     class Logger(object):
         def __init__(self, name, level=0):
@@ -29,6 +29,9 @@ except ImportError:
             self.level = level
         debug = info = warn = warning = notice = error = exception = \
             critical = log = lambda *a, **kw: None
+    
+    def lookup_level(_):
+        return 0
 
 UNAME_FLAG_MEANINGS = {
     'a': 'System Infomation',
@@ -551,7 +554,7 @@ class Archey(object):
     
     def __init__(self, config, options):
         self.config = config
-        self.log_level = int(options.log_level)
+        self.log_level = lookup_level(options.log_level)
         self.logger = Logger("Core", self.log_level)
         
         self.display = config.get("core", "display_modules")
@@ -714,7 +717,16 @@ def main():
             action='store', dest='config', default=None,
             help="Set the location of the config file to load.")
     parser.add_option('--debug',
-            action='store', dest='log_level', default=1)
+            action='store', type='choice', dest='log_level',
+            choices=('NOTSET',
+                     'DEBUG',
+                     'INFO',
+                     'WARNING',
+                     'ERROR',
+                     'CRITICAL'),
+            default='CRITICAL',
+            help="The level of errors you wish to display. Choices are\
+ NOTSET, DEBUG, INFO, WARNING, ERROR, and CRITICAL. CRITICAL is the default.")
     (options, args) = parser.parse_args()
     
     config = ArcheyConfigParser()
