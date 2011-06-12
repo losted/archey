@@ -227,9 +227,16 @@ class fsDisplay(display):
             raise
     
     def format_output(self, instring):
+        try:
+            decimal_point = self.call_command(
+                'locale -ck decimal_point').split('\n')[1].split('=')[1]
+        except Exception as e:
+            self.logger.warning('Could not determine locale decimal point,' +
+                   'defaulting to \'.\', failed with error {0}'.format(e))
+            decimal_point = '.'
         values = [line for line in instring.split('\n') if line][1].split()
-        used = values[3]
-        total = values[2]
+        used = values[3].replace(decimal_point, '.')
+        total = values[2].replace(decimal_point, '.')
         fstype = values[1]
         conversion_type = self.config.get('fs', 'unit', fallback="si").lower()
         conversions = self.conversions[conversion_type]
