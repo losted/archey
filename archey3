@@ -129,6 +129,11 @@ COLORS = {
     'white': '7'
 }
 
+class ArgumentError(Exception):
+    def __init__(self, caller, message):
+        msg = "{0}: {1}".format(caller.__class__.__name__, message)
+        super().__init__(msg)
+
 # State must be serializable
 State = collections.namedtuple("State", "color config logger")
 
