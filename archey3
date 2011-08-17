@@ -80,7 +80,6 @@ CLASS_MAPPINGS = {
     'env': 'envDisplay',
     'fs': 'fsDisplay',
     'mpd': 'mpdDisplay',
-    '_pc': 'processCheck' # Do _not_ use, internal only
 }
 
 
