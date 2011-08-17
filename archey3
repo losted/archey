@@ -11,6 +11,7 @@
 # Along with basic system information.
 
 # Import libraries
+import collections
 import subprocess, optparse, re, sys, configparser
 from subprocess import Popen, PIPE
 from optparse import OptionParser
@@ -19,6 +20,7 @@ from time import ctime, sleep
 from os import getenv
 import re
 import os.path
+import multiprocessing
 
 try:
     from logbook import Logger, lookup_level
@@ -78,6 +80,7 @@ CLASS_MAPPINGS = {
     'env': 'envDisplay',
     'fs': 'fsDisplay',
     'mpd': 'mpdDisplay',
+    '_pc': 'processCheck' # Do _not_ use, internal only
 }
 
 
@@ -126,17 +129,17 @@ COLORS = {
     'white': '7'
 }
 
+# State must be serializable
+State = collections.namedtuple("State", "color config logger")
+
 class display(object):
     command_line = ''
-    arg1 = ''
-    arg2 = ''
-    arg3 = ''
     stdindata = ''
     
-    def __init__(self, args, config, logger, parent=None):
-        self.config = config
-        self.logger = logger
-        self._parent = parent
+    def __init__(self, state, args=()):
+        self.state = state
+        # Python3 unpacking is awesome
+        self.arg1, self.arg2, self.arg3, *_ = tuple(args) + ('', '', '')
     
     @staticmethod
     def call_command(command):
@@ -164,7 +167,7 @@ class display(object):
                 self.process = Popen(cmd.split(), stdin=PIPE, stdout=PIPE,
                                       stderr=PIPE)
             except Exception as e:
-                self.logger.error("Could not run command {0}".format(cmd))
+                self.state.logger.error("Could not run command {0}".format(cmd))
     
     def render(self):
         (stdoutdata, stderrdata) = self.process.communicate(self.stdindata
@@ -180,14 +183,14 @@ class display(object):
             return output
         
         if number <= low:
-            color = low_color
+            color_= low_color
         elif low < number <= medium:
-            color = medium_color
+            color_ = medium_color
         elif medium < number:
-            color = high_color
+            color_ = high_color
         
-        return '{0}{1}{2}'.format(self._parent.color(color), output,
-                                  self._parent.color('clear'))
+        return '{0}{1}{2}'.format(color(self.state, color_), output,
+                                  color(self.state, 'clear'))
     
     regex_class = re.compile("").__class__
     def process_exists(self, key):
@@ -219,33 +222,31 @@ class fsDisplay(display):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        try:
-            self.arg1 = kwargs["args"][0]
-        except IndexError:
-            self.logger.error(
-                "Did not any arguments, require one, the fs to display")
-            raise
+        if not self.arg1:
+            msg = "Did not any arguments, require one, the fs to display"
+            self.state.logger.error(msg)
+            raise ArgumentError(self, msg)
     
     def format_output(self, instring):
         try:
             decimal_point = self.call_command(
                 'locale -ck decimal_point').split('\n')[1].split('=')[1]
         except Exception as e:
-            self.logger.warning('Could not determine locale decimal point,' +
+            self.state.logger.warning('Could not determine locale decimal point,' +
                    'defaulting to \'.\', failed with error {0}'.format(e))
             decimal_point = '.'
         values = [line for line in instring.split('\n') if line][1].split()
         used = values[3].replace(decimal_point, '.')
         total = values[2].replace(decimal_point, '.')
         fstype = values[1]
-        conversion_type = self.config.get('fs', 'unit', fallback="si").lower()
+        conversion_type = self.state.config.get('fs', 'unit', fallback="si").lower()
         conversions = self.conversions[conversion_type]
         
         mount = '/root' if self.arg1 == '/' else self.arg1 
         title = mount.split('/')[-1].title()
         
-        low = self.config.getint('fs', 'low_bound', fallback=40)
-        medium = self.config.getint('fs', 'medium_bound', fallback=70)
+        low = self.state.config.getint('fs', 'low_bound', fallback=40)
+        medium = self.state.config.getint('fs', 'medium_bound', fallback=70)
         
         try:
             #convert to straight float
@@ -253,13 +254,13 @@ class fsDisplay(display):
             total_ = float(total[:-1]) * conversions[total[-1].upper()]
             persentage = used_ / total_ * 100
         except Exception as e:
-            self.logger.error(
+            self.state.logger.error(
                 "Could not colorize output, errored with {0}".format(e))
             return
         else:
             used = self.color_me(used, persentage, low=low, medium=medium)
         
-        if self.config.getboolean("fs", "persentage", fallback=True):
+        if self.state.config.getboolean("fs", "persentage", fallback=True):
             part = '{used} / {total} ({persentage}%) ({fstype})'.format(
                 used=used, total=total, persentage=int(persentage),
                 fstype=fstype)
@@ -292,12 +293,12 @@ class sensorDisplay(display):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        arg_from_conf = self.config.get('sensor', 'sensor',
+        arg_from_conf = self.state.config.get('sensor', 'sensor',
                                         fallback='coretemp-*')
         try:
             arg_from_arg = kwargs["args"][0]
         except IndexError:
-            self.logger.error(
+            self.state.logger.error(
                "Did not get any arguments, require one, the sensor to display.")
             raise
         
@@ -332,7 +333,7 @@ class envDisplay(display):
         try:
             self.arg1 = kwargs["args"][0]
         except IndexError:
-            self.logger.error("Did not get any arguments, require one," +
+            self.state.logger.error("Did not get any arguments, require one," +
                               " the env variable to display.")
             raise
         
@@ -351,11 +352,11 @@ class unameDisplay(display):
         try:
             flag = kwargs["args"][0]
         except IndexError:
-            self.logger.error("Did not get any arguments, require one," +
+            self.state.logger.error("Did not get any arguments, require one," +
                               " the flag to pass to uname")
             raise
         
-        arg_from_conf = self.config.get('uname', 'argument', fallback="")
+        arg_from_conf = self.state.config.get('uname', 'argument', fallback="")
         arg_from_arg = flag
         if arg_from_arg:
             self.arg1 = '-' + arg_from_arg
@@ -424,8 +425,8 @@ class processCheck(display):
         
 class wmDisplay(display):
     def render(self):
-        if self.config.get('wm', 'manual', fallback=False):
-            return "WM", self.config.get('wm', 'manual')
+        if self.state.config.get('wm', 'manual', fallback=False):
+            return "WM", self.state.config.get('wm', 'manual')
         wm = ''
         for key in WM_DICT.keys():
             if self.process_exists(key):
@@ -435,8 +436,8 @@ class wmDisplay(display):
 
 class deDisplay(display):
     def render(self):
-        if self.config.get('de', 'manual', fallback=False):
-            return "DE", self.config.get('de', 'manual')
+        if self.state.config.get('de', 'manual', fallback=False):
+            return "DE", self.state.config.get('de', 'manual')
         de = ''
         for key in DE_DICT.keys():
             if self.process_exists(key):
@@ -457,10 +458,10 @@ class mpdDisplay(display):
         try:
             self.stat = kwargs["args"][0]
         except IndexError:
-            self.logger.error("Did not get any arguments, require one," +
+            self.state.logger.error("Did not get any arguments, require one," +
                               " the stat to display.")
-        self.arg1 = self.config.get('mpd', 'host', fallback='localhost')
-        self.arg2 = self.config.getint('mpd', 'port', fallback=6600)
+        self.arg1 = self.state.config.get('mpd', 'host', fallback='localhost')
+        self.arg2 = self.state.config.getint('mpd', 'port', fallback=6600)
     
     def format_output(self, instring):
         lines = instring.split('\n')
@@ -471,7 +472,8 @@ class mpdDisplay(display):
             stats['songs'] = lines[2].split(':')[1].strip()
         #if people don't have mpc installed then return None)
         except:
-            self.logger.error("Could not parse mpc output, is mpc installed?")
+            self.state.logger.error(
+                "Could not parse mpc output, is mpc installed?")
             return
         
         return ('{statname} in MPD database'.format(statname=self.stat.title()),
@@ -539,24 +541,75 @@ distro(), uname(n), uname(r), uptime(), wm(), de(), packages(), ram(),\
 #------------ Functions -----------
 
 def screenshot():
-        print('Screenshotting in')
-        for x in sorted(range(1,6), reverse=True):
-                print('%s' % x, end='')
-                sys.stdout.flush()
-                sleep(1.0/3)
-                for x in range(3):
-                    print('.', end='')
-                    sys.stdout.flush()
-                    sleep(1.0/3)
-                    
-        print('Say Cheese!')
+    print('Screenshotting in')
+    for x in sorted(range(1,6), reverse=True):
+        print('%s' % x, end='')
         sys.stdout.flush()
-        try:
-            subprocess.check_call(['import', '-window', 'root',
-                                   ctime().replace(' ','_')+'.jpg'])
-        except subprocess.CalledProcessError as e:
-            print('Screenshot failed with return code {0}.'.format(
+        sleep(1.0/3)
+        for x in range(3):
+            print('.', end='')
+            sys.stdout.flush()
+            sleep(1.0/3)
+            
+    print('Say Cheese!')
+    sys.stdout.flush()
+    try:
+        subprocess.check_call(['import', '-window', 'root',
+                               ctime().replace(' ','_')+'.jpg'])
+    except subprocess.CalledProcessError as e:
+        print('Screenshot failed with return code {0}.'.format(
                 e.returncode))
+
+def color(state, code, bold=False):
+    """
+    Returns a character color sequence acording to the code given, and the
+    color theme in the state argument.
+    """
+    if code == 2:
+        bold = True
+    first_bitty_bit = '\x1b[{0};'.format(int(not bold))
+    if code in range(3):
+        second_bitty_bit = '3{0}m'.format(state.color)
+    elif code == "clear":
+        return '\x1b[0m'
+    else:
+        second_bitty_bit = '3{0}m'.format(COLORS[code])
+
+    return first_bitty_bit + second_bitty_bit
+
+def _mp_render_helper(container):
+    """
+    A little helper to get round the one iterator argument with
+    multiprocessing.Pool.map.
+    """
+    state = container["state"]
+    cls_name = container["cls_name"]
+    args = container["args"]
+    cls = globals()[CLASS_MAPPINGS[cls_name]]
+    return render_class(state, cls, args)
+
+def render_class(state, cls, args):
+    """
+    Returns the result of the run_command method for the class passed.
+    """
+    try:
+        instance = cls(args=args, state=State(
+            logger=Logger(cls.__name__, state.logger.level),
+            color=state.color,
+            config=state.config))
+    
+    except Exception as e:
+        state.logger.error(
+            "Could not instantiate {0}, failed with error {1}".format(
+                cls.__name__, e))
+        return
+    try:
+        instance.run_command()
+        return instance.render()
+    except Exception as e:
+        state.logger.error(
+            "Could not render line for {0}, failed with error {1}".format(
+                cls.__name__, e))
 
 #------------ Display object ---------
 
@@ -564,29 +617,36 @@ class Archey(object):
     DISPLAY_PARSING_REGEX = "(?P<func>\w+)\((|(?P<args>[\w, /]+))\)"
     
     def __init__(self, config, options):
-        self.config = config
-        self.log_level = lookup_level(options.log_level)
-        self.logger = Logger("Core", self.log_level)
+        log_level = lookup_level(options.log_level)
+        logger = Logger("Core", log_level)
         
         self.display = config.get("core", "display_modules")
         colorscheme = options.color or config.get(
             "core", "color", fallback="blue")
         for key in COLORS.keys():
             if key == colorscheme:
-                self.colorcode = COLORS[key]
+                colorcode = COLORS[key]
+        
+        self.state = State(colorcode, config, logger)
         
         global PROCESSES
-        PROCESSES = self.render_class(processCheck, ())
+        PROCESSES = render_class(self.state, processCheck, ())
         
-        self.distro_name = ' '.join(
-            self.render_class(distroCheck, ())[1].split()[:-1])
+        distro_out = render_class(self.state, distroCheck, ())
+        
+        if not distro_out:
+            self.state.logger.critical(
+                "Unrecognised distribution.")
+            raise RuntimeException("Unrecognised distribution.")
+        
+        self.distro_name = ' '.join(distro_out[1].split()[:-1])
     
     def render(self):
         results = self.prepare_results()
         results = self.arrange_results(results)
         
-        return LOGOS[self.distro_name].format(c1=self.color(1),
-                                              c2=self.color(2),
+        return LOGOS[self.distro_name].format(c1=color(self.state, 1),
+                                              c2=color(self.state, 2),
                                               results = results
                                               )
     
@@ -596,25 +656,29 @@ class Archey(object):
         as a list. The returned list will be exactly 18 items long, with any
         left over spaces being filled with empty strings.
         """
-        outputs = []
-        # Run functions found in 'display' array.
-        for func_name, args in self.parse_display():
-            cls = eval(CLASS_MAPPINGS[func_name])
-            
-            line = self.render_class(cls, args)
-            if hasattr(line, "__iter__") and len(line) != 2:
-                outputs.extend(line)
-            elif line:
-                outputs.append(line)
+        poolsize = self.state.config.getint("core", "poolsize", fallback=5)
         
-        outputs = [self.format_item(line) for line in outputs] 
+        pool = multiprocessing.Pool(poolsize)
+        
+        arguments = []
+        for cls_name, args in self.parse_display():
+            arguments.append({
+                    'cls_name': cls_name,
+                    'args': args,
+                    'state': self.state
+                    })
+        raw_out = pool.map(_mp_render_helper, arguments)
+        outputs = list(map(self.format_item,
+                           filter(bool, raw_out)))
+        
+        
         return outputs + [""] * (18 - len(outputs))
     
     def arrange_results(self, results):
         """
         Arranges the results as specified in the config file.
         """
-        arrangement = self.config.get("core", "align", fallback="top")
+        arrangement = self.state.config.get("core", "align", fallback="top")
         if arrangement == "top":
             return results
         elif arrangement == "bottom":
@@ -638,7 +702,7 @@ class Archey(object):
             
             info = re.match(self.DISPLAY_PARSING_REGEX, func)
             if not info:
-                self.logger.error(
+                self.state.logger.error(
                     "Could not parse display string {0}".format(func))
                 continue
             
@@ -658,51 +722,17 @@ class Archey(object):
         #if we're dealing with a fraction
         if len(data.split('/')) == 2:
             numerator = data.split('/')[0]
-            numerator = (self.color(1, bold=True) + numerator +
-                         self.color('clear'))
+            numerator = (color(self.state, 1, bold=True) + numerator +
+                         color(self.state, 'clear'))
             denominator = data.split('/')[1]
             data = '/'.join((numerator, denominator))
         
         return "{color}{title}:{clear} {data}".format(
-                color=self.color(1),
+                color=color(self.state, 1),
                 title=title,
                 data=data,
-                clear=self.color("clear")
+                clear=color(self.state, "clear")
         )
-        
-    def color(self, code, bold=False):
-        if code == 2:
-            bold = True
-        first_bitty_bit = '\x1b[{0};'.format(int(not bold))
-        if code in range(3):
-            second_bitty_bit = '3{0}m'.format(self.colorcode)
-        elif code == "clear":
-            return '\x1b[0m'
-        else:
-            second_bitty_bit = '3{0}m'.format(COLORS[code])
-       
-        return first_bitty_bit + second_bitty_bit
-    
-    def render_class(self, cls, args):
-        """
-        Returns the result of the run_command method for the class passed.
-        """
-        logger = Logger(cls.__name__, self.log_level)
-        try:
-            instance = cls(args=args, config=self.config, logger=logger,
-                           parent=self)
-        except Exception as e:
-            self.logger.error(
-                "Could not instantiate {0}, failed with error {1}".format(
-                    cls.__name__, e))
-            return
-        try:
-            instance.run_command()
-            return instance.render()
-        except Exception as e:
-            self.logger.error(
-                "Could not render line for {0}, failed with error {1}".format(
-                    cls.__name__, e))
 
 def main():
     parser = OptionParser(
