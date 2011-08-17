@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name="Archey3",
-    version="0.3",
+    version="0.4",
     author="Laurie Clark-Michalek",
     author_email="bluepeppers@archlinux.us",
     description="A simple python scrip to display an Archlinux logo in ASCII art along with basic system information.",
