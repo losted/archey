@@ -545,9 +545,10 @@ distro(), uname(n), uname(r), uptime(), wm(), de(), packages(), ram(),\
 
 #------------ Functions -----------
 
-def screenshot():
+def screenshot(state):
     print('Screenshotting in')
-    for x in sorted(range(1,6), reverse=True):
+    screenshot_time = state.config.getint("core", "screenshotwait", fallback=5)
+    for x in sorted(range(1, screenshot_time + 1), reverse=True):
         print('%s' % x, end='')
         sys.stdout.flush()
         sleep(1.0/3)
@@ -562,8 +563,9 @@ def screenshot():
         subprocess.check_call(['import', '-window', 'root',
                                ctime().replace(' ','_')+'.jpg'])
     except subprocess.CalledProcessError as e:
-        print('Screenshot failed with return code {0}.'.format(
+        state.logger.critical('Screenshot failed with return code {0}.'.format(
                 e.returncode))
+        raise
 
 def color(state, code, bold=False):
     """
@@ -645,6 +647,15 @@ class Archey(object):
             raise RuntimeException("Unrecognised distribution.")
         
         self.distro_name = ' '.join(distro_out[1].split()[:-1])
+    
+    def run(self, screenshot_=False):
+        """
+        Actually print the logo etc, and take a screenshot if required.
+        """
+        print(self.render())
+        
+        if screenshot_:
+            screenshot(self.state)
     
     def render(self):
         results = self.prepare_results()
@@ -779,10 +790,7 @@ def main():
     config.read(options.config)
     
     archey = Archey(config=config, options=options)
-    print(archey.render())
-    
-    if options.screenshot:
-        screenshot()
+    archey.run(options.screenshot)
 
 if __name__ == "__main__":
     main()
