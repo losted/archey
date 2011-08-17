@@ -322,14 +322,14 @@ class sensorDisplay(display):
             value = info[1]
             intvalue = int(value[:3])
             if intvalue > 45:
-                temp = (self._parent.color("red") + info[1] +
-                        self._parent.color("clear"))
+                temp = (color(self.state, "red") + info[1] +
+                        color(self.state, "clear"))
             elif intvalue in range(30, 45):
-                temp = (self._parent.color("magenta") + info[1] +
-                        self._parent.color("clear"))
+                temp = (color(self.state, "magenta") + info[1] +
+                        color(self.state, "clear"))
             else:
-                temp = (self._parent.color("green") + info[1] +
-                        self._parent.color("clear"))
+                temp = (color(self.state, "green") + info[1] +
+                        color(self.state, "clear"))
             out.append((info[0], temp))
         return out
 
