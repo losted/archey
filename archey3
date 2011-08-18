@@ -68,20 +68,16 @@ LOGOS = {'Arch Linux': '''{c1}
 \x1b[0m'''
 }
 
-CLASS_MAPPINGS = {
-    'distro': 'distroCheck',
-    'uname': 'unameDisplay',
-    'uptime': 'uptimeDisplay',
-    'sensors': 'sensorDisplay',
-    'wm': 'wmDisplay',
-    'de': 'deDisplay',
-    'packages': 'packageDisplay',
-    'ram': 'ramDisplay',
-    'env': 'envDisplay',
-    'fs': 'fsDisplay',
-    'mpd': 'mpdDisplay',
-}
+CLASS_MAPPINGS = {}
 
+def module_register(name):
+    """
+    Registers the class in the CLASS_MAPPING global.
+    """
+    def decorator(cls):
+        CLASS_MAPPINGS[name] = cls
+        return cls
+    return decorator
 
 DE_DICT = {'gnome-session': 'GNOME',
     'ksmserver': 'KDE',
@@ -206,6 +202,7 @@ class display(object):
         return PROCESSES(key)
 
 
+@module_register("fs")
 class fsDisplay(display):
     command_line = "df -TPh {arg1}"
     
@@ -273,6 +270,7 @@ class fsDisplay(display):
                 used=used, total=total, fstype=fstype)
         return title, part
 
+@register_module("ram")
 class ramDisplay(display):
     command_line = "free -m"
     
@@ -291,6 +289,7 @@ class ramDisplay(display):
         part = '{used} / {total} MB'.format(used=used, total=total)
         return title, part
         
+@register_module("sensor")
 class sensorDisplay(display):
     command_line = "sensors {arg1}"
     
@@ -332,6 +331,7 @@ class sensorDisplay(display):
             out.append((info[0], temp))
         return out
 
+@register_module("env")
 class envDisplay(display):
     def __init__(self, **kwargs):
         try:
@@ -347,6 +347,7 @@ class envDisplay(display):
         argvalue = getenv(self.arg1.upper())
         return ('$' + self.arg1.upper(), argvalue)
 
+@register_module("uname")
 class unameDisplay(display):
     command_line = "uname {arg1}"
     
@@ -372,6 +373,7 @@ class unameDisplay(display):
     def format_output(self, instring):
         return (UNAME_FLAG_MEANINGS[self.arg1[1]], instring)
 
+@register_module("uptime")
 class uptimeDisplay(display):
     def render(self):
         with open("/proc/uptime") as upfile:
@@ -390,12 +392,14 @@ class uptimeDisplay(display):
             )
             return "Uptime", uptime
 
+@register_module("package")
 class packageDisplay(display):
     command_line = "pacman -Q"
     
     def format_output(self, instring):
         return "Packages", len(instring.split('\n'))
 
+@register_module("distro")
 class distroCheck(display):
     def render(self):
         try:
@@ -407,6 +411,7 @@ class distroCheck(display):
         distro = '{0} {1}'.format(distro, self.call_command("uname -m"))
         return "OS", distro
 
+@register_module("process")
 class processCheck(display):
     command_line = "ps -u {arg1}"
     
@@ -427,6 +432,7 @@ class processCheck(display):
             return True
         return False
         
+@register_module("wm")
 class wmDisplay(display):
     def render(self):
         if self.state.config.get('wm', 'manual', fallback=False):
@@ -438,6 +444,7 @@ class wmDisplay(display):
                 break
         return "WM", WM_DICT[wm]
 
+@register_module("de")
 class deDisplay(display):
     def render(self):
         if self.state.config.get('de', 'manual', fallback=False):
@@ -449,6 +456,7 @@ class deDisplay(display):
                 break
         return "DE", DE_DICT[de]
 
+@register_module("mpd")
 class mpdDisplay(display):
     """
     Displays certain stat about MPD database. If mpd not installed, output
@@ -591,7 +599,7 @@ def _mp_render_helper(container):
     state = container["state"]
     cls_name = container["cls_name"]
     args = container["args"]
-    cls = globals()[CLASS_MAPPINGS[cls_name]]
+    cls = CLASS_MAPPINGS[cls_name]
     return render_class(state, cls, args)
 
 def render_class(state, cls, args):
