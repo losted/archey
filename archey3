@@ -569,8 +569,6 @@ def screenshot(state):
     
     screenshot_command = state.config.get('core', 'screenshot_command', 
                                   fallback="import -window root <datetime>.jpg")
-    print(screenshot_command)
-    sys.stdout.flush()
     try:
         subprocess.check_call(
             screenshot_command.replace('<datetime>',
