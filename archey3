@@ -392,7 +392,7 @@ class uptimeDisplay(display):
             )
             return "Uptime", uptime
 
-@module_register("package")
+@module_register("packages")
 class packageDisplay(display):
     command_line = "pacman -Q"
     
