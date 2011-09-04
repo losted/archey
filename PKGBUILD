@@ -1,9 +1,9 @@
 # Maintainer: Laurie Clark-Michalek <bluepeppers@archlinux.us>
 
 pkgname=archey3
-pkgver=20110612
+pkgver=20110904
 pkgrel=1
-pkgdesc="Python script to display system infomation alongside Arch Linux logo"
+pkgdesc="Python script to display system infomation alongside the Arch Linux logo"
 arch=('any')
 url="http://bluepeppers.github.com/archey3"
 license=('GPL')
