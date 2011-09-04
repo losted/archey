@@ -270,7 +270,7 @@ class fsDisplay(display):
                 used=used, total=total, fstype=fstype)
         return title, part
 
-@register_module("ram")
+@module_register("ram")
 class ramDisplay(display):
     command_line = "free -m"
     
@@ -289,7 +289,7 @@ class ramDisplay(display):
         part = '{used} / {total} MB'.format(used=used, total=total)
         return title, part
         
-@register_module("sensor")
+@module_register("sensor")
 class sensorDisplay(display):
     command_line = "sensors {arg1}"
     
@@ -331,7 +331,7 @@ class sensorDisplay(display):
             out.append((info[0], temp))
         return out
 
-@register_module("env")
+@module_register("env")
 class envDisplay(display):
     def __init__(self, **kwargs):
         try:
@@ -347,7 +347,7 @@ class envDisplay(display):
         argvalue = getenv(self.arg1.upper())
         return ('$' + self.arg1.upper(), argvalue)
 
-@register_module("uname")
+@module_register("uname")
 class unameDisplay(display):
     command_line = "uname {arg1}"
     
@@ -373,7 +373,7 @@ class unameDisplay(display):
     def format_output(self, instring):
         return (UNAME_FLAG_MEANINGS[self.arg1[1]], instring)
 
-@register_module("uptime")
+@module_register("uptime")
 class uptimeDisplay(display):
     def render(self):
         with open("/proc/uptime") as upfile:
@@ -392,14 +392,14 @@ class uptimeDisplay(display):
             )
             return "Uptime", uptime
 
-@register_module("package")
+@module_register("package")
 class packageDisplay(display):
     command_line = "pacman -Q"
     
     def format_output(self, instring):
         return "Packages", len(instring.split('\n'))
 
-@register_module("distro")
+@module_register("distro")
 class distroCheck(display):
     def render(self):
         try:
@@ -411,7 +411,7 @@ class distroCheck(display):
         distro = '{0} {1}'.format(distro, self.call_command("uname -m"))
         return "OS", distro
 
-@register_module("process")
+@module_register("process")
 class processCheck(display):
     command_line = "ps -u {arg1}"
     
@@ -432,7 +432,7 @@ class processCheck(display):
             return True
         return False
         
-@register_module("wm")
+@module_register("wm")
 class wmDisplay(display):
     def render(self):
         if self.state.config.get('wm', 'manual', fallback=False):
@@ -444,7 +444,7 @@ class wmDisplay(display):
                 break
         return "WM", WM_DICT[wm]
 
-@register_module("de")
+@module_register("de")
 class deDisplay(display):
     def render(self):
         if self.state.config.get('de', 'manual', fallback=False):
@@ -456,7 +456,7 @@ class deDisplay(display):
                 break
         return "DE", DE_DICT[de]
 
-@register_module("mpd")
+@module_register("mpd")
 class mpdDisplay(display):
     """
     Displays certain stat about MPD database. If mpd not installed, output
@@ -566,9 +566,15 @@ def screenshot(state):
             
     print('Say Cheese!')
     sys.stdout.flush()
+    
+    screenshot_command = state.config.get('core', 'screenshot_command', 
+                                  fallback="import -window root <datetime>.jpg")
+    print(screenshot_command)
+    sys.stdout.flush()
     try:
-        subprocess.check_call(['import', '-window', 'root',
-                               ctime().replace(' ','_')+'.jpg'])
+        subprocess.check_call(
+            screenshot_command.replace('<datetime>',
+                                       ctime().replace(' ','_')).split(" "))
     except subprocess.CalledProcessError as e:
         state.logger.critical('Screenshot failed with return code {0}.'.format(
                 e.returncode))
