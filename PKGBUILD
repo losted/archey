@@ -7,7 +7,7 @@ pkgdesc="Python script to display system infomation alongside the Arch Linux log
 arch=('any')
 url="http://bluepeppers.github.com/archey3"
 license=('GPL')
-depends=('python' 'imagemagick')
+depends=('python')
 makedepends=('git' 'python-distribute')
 optdepends=(
 	'python3-mpd-git: python mpd libary for mpd protocol (optional, mpc can be used instead)'
