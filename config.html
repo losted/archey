@@ -67,6 +67,10 @@
     # The time in seconds to wait before taking a screenshot after
     # printing the archlinux logo and system information
     
+    screenshot_command = import -window root <datetime>.jpg
+    # The command that will be run when a screenshot needs to be taken. <datetime>
+    # will be replaced with the current date and time.
+    
     [fs]
     
     # The set of units to use when displaying partition size
