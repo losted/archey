@@ -109,6 +109,7 @@ WM_DICT = {
     'wmfs': 'Wmfs',
     'wmii': 'wmii',
     'xfwm4': 'Xfwm',
+    'emerald': 'Emerald',
     re.compile('xmonad-*'): 'xmonad',
     '': 'None',
 }
