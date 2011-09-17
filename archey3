@@ -90,7 +90,6 @@ WM_DICT = {
     'awesome': 'Awesome',
     'beryl': 'Beryl',
     'blackbox': 'Blackbox',
-    'compiz': 'Compiz',
     'dwm': 'DWM',
     'enlightenment': 'Enlightenment',
     'fluxbox': 'Fluxbox',
@@ -110,6 +109,7 @@ WM_DICT = {
     'wmii': 'wmii',
     'xfwm4': 'Xfwm',
     'emerald': 'Emerald',
+    'compiz': 'Compiz',
     re.compile('xmonad-*'): 'xmonad',
     '': 'None',
 }
