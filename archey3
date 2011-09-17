@@ -110,7 +110,7 @@ WM_DICT = {
     'wmii': 'wmii',
     'xfwm4': 'Xfwm',
     'emerald': 'Emerald',
-    'xmonad': 'xmonad',
+    re.compile('xmonad-*'): 'xmonad',
     '': 'None',
 }
 
@@ -423,15 +423,12 @@ class processCheck(display):
         out = str(self.process.communicate()[0])
         
         self._processes = set()
-        import pdb; pdb.set_trace()
         for line in out.split("\\n"):
-            print(line)
             words = line.split()
             if len(words) <= 3:
                 continue
             
             self._processes.add(words[3])
-            print(self._processes)
     
     def __call__(self, proc):
         if proc in self._processes:
