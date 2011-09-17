@@ -414,29 +414,24 @@ class distroCheck(display):
 
 @module_register("process")
 class processCheck(display):
-    command_line = "ps -u {arg1}"
+    command_line = "ps -u " + getuser()
     
     render = lambda self: self
-    
-    def __init__(self, **kwargs):
-        self.arg1 = getuser()
-        super().__init__(**kwargs)
     
     def run_command(self):
         super().run_command()
         out = str(self.process.communicate()[0])
         
         self._processes = set()
+        import pdb; pdb.set_trace()
         for line in out.split("\\n"):
+            print(line)
             words = line.split()
-            if len(words) <= 10:
+            if len(words) <= 3:
                 continue
             
-            # Ignore the wrapper command
-            if words[10] == 'ck-launch-session':
-                words[10] = words[11]
-            
-            self._processes.add(words[10])
+            self._processes.add(words[3])
+            print(self._processes)
     
     def __call__(self, proc):
         if proc in self._processes:
