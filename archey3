@@ -532,8 +532,13 @@ distro(), uname(n), uname(r), uptime(), wm(), de(), packages(), ram(),\
         default config file to $XDG_CONFIG_HOME/archey3.cfg.
         """
 
-        config_location = os.path.expandvars(os.path.expanduser(
-                file_location or "$XDG_CONFIG_HOME/archey3.cfg"))
+        if file_location is None and "XDG_CONFIG_HOME" not in os.environ:
+            config_location = os.path.expanduser("~/.archey3.cfg")
+        elif file_location is None:
+            config_location = os.path.expandvars("$XDG_CONFIG_HOME/archey3.cfg")
+        else:
+            config_location = \
+                os.path.expandvars(os.path.expanduser(file_location))
 
         loaded = super(ArcheyConfigParser, self).read(config_location)
 
