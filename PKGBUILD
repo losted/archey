@@ -2,7 +2,7 @@
 # Contributer: graysky <graysky AT archlinux DOR us>
 
 pkgname=archey3
-pkgver=0.4.29.gb4cc4bb
+pkgver=0.5
 pkgrel=1
 pkgdesc="Python script to display system infomation alongside the Arch Linux logo."
 arch=('any')
@@ -11,7 +11,7 @@ license=('GPL')
 depends=('python')
 makedepends=('git' 'python-distribute')
 optdepends=(
-'python3-mpd-git: python mpd libary for mpd protocol (optional, mpc can be used instead)'
+'python-mpd-git: python libary for mpd interaction',
 'python-logbook-git: for logging'
 'imagemagick: for default screenshot command'
 )
@@ -26,8 +26,7 @@ pkgver() {
 }
 
 package() {
-	cd ${pkgname}
+	cd "$srcdir/$pkgname"
 	python setup.py install --root=${pkgdir}
-	ln -s /usr/bin/archey3 ${pkgdir}/usr/bin/archey
 	install -D -m644 COPYING ${pkgdir}/usr/share/licenses/archey/COPYING
-} 
+}
