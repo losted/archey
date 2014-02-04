@@ -630,6 +630,8 @@ def screenshot(state):
         state.logger.critical('Screenshot failed with return code {0}.'.format(
                 e.returncode))
         raise
+    except subprocess.FileNotFoundError:
+        print("Could not find import command, install imagemagick")
 
 def color(state, code, bold=False):
     """
