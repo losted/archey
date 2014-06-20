@@ -93,6 +93,7 @@ WM_DICT = collections.OrderedDict([
         ('awesome', 'Awesome'),
         ('beryl', 'Beryl'),
         ('blackbox', 'Blackbox'),
+        ('bspwm', 'bspwm'),
         ('dwm', 'DWM'),
         ('enlightenment', 'Enlightenment'),
         ('fluxbox', 'Fluxbox'),
