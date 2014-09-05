@@ -239,7 +239,7 @@ class fsDisplay(display):
     def format_output(self, instring):
         try:
             decimal_point = self.call_command(
-                'locale -ck decimal_point').split('\n')[1].split('=')[1]
+                'locale -ck decimal_point').split('\n')[1].split('=')[1].strip('\"')
         except Exception as e:
             self.state.logger.warning('Could not determine locale decimal point,' +
                    'defaulting to \'.\', failed with error {0}'.format(e))
