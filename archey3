@@ -287,7 +287,7 @@ class ramDisplay(display):
     def format_output(self, instring):
         ram = ''.join(line for line in str(instring).split('\n') if\
                       line.startswith('Mem:')).split()
-        used = int(ram[2]) - int(ram[5]) - int(ram[6])
+        used = int(ram[2])
         total = int(ram[1])
         title = 'RAM'
         try:
