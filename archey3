@@ -102,7 +102,7 @@ WM_DICT = collections.OrderedDict([
         ('herbstluftwm', 'herbstluftwm'),
         ('i3', 'i3'),
         ('icewm', 'IceWM'),
-        ('kwin', 'KWin'),
+        (re.compile('kwin(_x11|_wayland)?'), 'KWin'),
         ('metacity', 'Metacity'),
         ('musca', 'Musca'),
         ('openbox', 'Openbox'),
