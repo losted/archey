@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# archey3 [version 0.5]
+# archey3
 #
 # Copyright 2010 Melik Manukyan <melik@archlinux.us>
 # Copyright 2010-2012 Laurie Clark-Michalek <bluepeppers@archlinux.us>
@@ -9,6 +9,8 @@
 #
 # Simple python script to display an Archlinux logo in ASCII art
 # Along with basic system information.
+
+__version__ = "0.5"
 
 # Import libraries
 import collections
@@ -825,7 +827,7 @@ def main():
         usage='%prog',
         description="""%prog is a utility to display system info and take\
  screenshots""",
-        version="%prog 0.3")
+        version="%prog {version}".format(version=__version__))
     parser.add_option('-c', '--color',
             action='store', type='choice', dest='color',
             choices=('black',
