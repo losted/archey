@@ -84,6 +84,7 @@ def module_register(name):
 
 DE_DICT = collections.OrderedDict([
         ('cinnamon', 'Cinnamon'),
+        ('gnome-session', 'GNOME'),
         ('gnome-shell', 'GNOME'),
         ('ksmserver', 'KDE'),
         ('mate-session', 'MATE'),
