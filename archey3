@@ -215,6 +215,39 @@ class display(object):
                     return True
         return PROCESSES(key)
 
+@module_register("ip")
+class ipDisplay(display):
+    command_line = "wget -qO- https://api.d2k5.com/ip.php ; echo"
+
+    def format_output(self, instring):
+        f = os.popen('wget -qO- https://api.d2k5.com/ip.php?country ; echo')
+        country = f.read()
+        ipaddress = instring.rstrip('\n').split('\n')
+        return "IP:", ipaddress[0] +" - "+country
+
+@module_register("weather")
+class weatherDisplay(display):
+    command_line = "ls"
+    def format_output(self, instring):
+        location = self.arg1
+        url = "http://api.openweathermap.org/data/2.5/weather?q=" + location + "&units=metric&appid=ac1d75e9d7a88eebb3bc959e8d701383"
+
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req) as response:
+            json_string = response.read().decode("utf-8")
+            page = json.loads(json_string)
+
+            if "weather" in page:
+                location = "%s, %s" % (page['name'], page['sys']['country'])
+                celsius = "%d'C" % page['main']['temp']
+                fahrenheit = "%d'F" % ((page['main']['temp']*9/5)+32)
+                description = page["weather"][0]["description"].title()
+                humidity = "%s%%" % page["main"]["humidity"]
+                wind_speed = "%sKM/H" % page["wind"]["speed"]
+                return "Weather:" , "%s in %s" % (celsius, location)
+                #return "[Weather] %s | %s/%s | %s | Humidity: %s | Wind: %s" % (location, celsius, fahrenheit, description, humidity,wind_speed)
+            else:
+                return "Weather:", "The weather string given was malformed."
 
 @module_register("fs")
 class fsDisplay(display):
