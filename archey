@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 #
 # archey
 #
@@ -25,6 +25,7 @@ import re
 import os.path
 import multiprocessing
 import miniupnpc
+import socket
 
 try:
     from logbook import Logger, lookup_level
@@ -224,24 +225,15 @@ class ipDisplay(display):
         f = os.popen('wget -qO- https://api.d2k5.com/ip.php?country ; echo')
         country = f.read()
         ipaddress = instring.rstrip('\n').split('\n')
-        return "Banana! IP:", ipaddress[0] +" - "+country
+        return "External IP:", ipaddress[0] +" - "+country
 
+@module_register("localip")
+class localipDisplay(display):
+    command_line = "wget -qO- https://api.d2k5.com/ip.php ; echo"
 
-@module_register("ip2")
-class ip2Display(display):
-    command_line = "ls"
     def format_output(self, instring):
-        u = miniupnpc.UPnP()
-        u.discoverdelay = 200;
-        u.discover()
-        u.selectigd()
-        return 'external ip address:', u.externalipaddress()
-
-
-@module_register("ip3")
-class ip3Display(display):
-    def format_output(self, instring):
-        return "Your ip is : 127.0.0.1"
+        ipaddress = socket.gethostbyname(socket.gethostname())
+        return "Local IP:", ipaddress
 
 @module_register("weather")
 class weatherDisplay(display):
