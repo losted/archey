@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# archey3
+# archey
 #
 # Copyright 2010 Melik Manukyan <melik@archlinux.us>
 # Copyright 2010-2012 Laurie Clark-Michalek <bluepeppers@archlinux.us>
@@ -223,7 +223,7 @@ class ipDisplay(display):
         f = os.popen('wget -qO- https://api.d2k5.com/ip.php?country ; echo')
         country = f.read()
         ipaddress = instring.rstrip('\n').split('\n')
-        return "IP:", ipaddress[0] +" - "+country
+        return "Banana! IP:", ipaddress[0] +" - "+country
 
 @module_register("weather")
 class weatherDisplay(display):
@@ -599,14 +599,14 @@ distro(), uname(n), uname(r), uptime(), wm(), de(), packages(), ram(),\
         """
         Loads the config options stored in at file_location. If file_location
         does not exist, it will attempt to load from the default config location
-        ($XDG_CONFIG_HOME/archey3.cfg). If that does not exist, it will write a
-        default config file to $XDG_CONFIG_HOME/archey3.cfg.
+        ($XDG_CONFIG_HOME/archey.cfg). If that does not exist, it will write a
+        default config file to $XDG_CONFIG_HOME/archey.cfg.
         """
 
         if file_location is None and "XDG_CONFIG_HOME" not in os.environ:
-            config_location = os.path.expanduser("~/.archey3.cfg")
+            config_location = os.path.expanduser("~/.archey.cfg")
         elif file_location is None:
-            config_location = os.path.expandvars("$XDG_CONFIG_HOME/archey3.cfg")
+            config_location = os.path.expandvars("$XDG_CONFIG_HOME/archey.cfg")
         else:
             config_location = \
                 os.path.expandvars(os.path.expanduser(file_location))

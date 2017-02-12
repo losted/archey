@@ -5,13 +5,13 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name="Archey3",
+    name="Archey",
     version="0.4",
-    author="Laurie Clark-Michalek",
-    author_email="bluepeppers@archlinux.us",
-    description="A simple python scrip to display an Archlinux logo in ASCII art along with basic system information.",
+    author="Laurie Clark-Michalek modified by losted",
+    author_email="losted@losted.net",
+    description="A simple python script to display an Archlinux logo in ASCII art along with basic system information.",
     license="GPL",
-    url="http://bluepeppers.github.com/archey3",
+    url="http://github.com/losted/archey-git",
     long_description=read("README.md"),
-    scripts=["archey3"]
+    scripts=["archey"]
 )
