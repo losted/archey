@@ -2,14 +2,14 @@
 # Contributer: Laurie Clark-Michalek <bluepeppers@archlinux.us> and graysky <graysky AT archlinux DOR us>
 
 pkgname=archey
-pkgver=0.4.61.g9f44130
+pkgver=0.4.62.gcd8e5a4
 pkgrel=1
 pkgdesc="Python script to display system infomation alongside the Arch Linux logo."
 arch=('any')
 url="http://github.com/losted/archey-git"
 license=('GPL')
 depends=('python')
-makedepends=('git' 'python-distribute')
+makedepends=('git' 'python-distribute' 'miniupnpc')
 optdepends=(
 'python-mpd-git: python libary for mpd interaction',
 'python-logbook-git: for logging'
