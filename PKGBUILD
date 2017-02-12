@@ -2,7 +2,7 @@
 # Contributer: Laurie Clark-Michalek <bluepeppers@archlinux.us> and graysky <graysky AT archlinux DOR us>
 
 pkgname=archey
-pkgver=0.4.59.gf05416c
+pkgver=0.4.57.g140b021
 pkgrel=1
 pkgdesc="Python script to display system infomation alongside the Arch Linux logo."
 arch=('any')

@@ -599,14 +599,14 @@ distro(), uname(n), uname(r), uptime(), wm(), de(), packages(), ram(),\
         """
         Loads the config options stored in at file_location. If file_location
         does not exist, it will attempt to load from the default config location
-        ($XDG_CONFIG_HOME/archey.cfg). If that does not exist, it will write a
-        default config file to $XDG_CONFIG_HOME/archey.cfg.
+        ($XDG_CONFIG_HOME/archey.conf). If that does not exist, it will write a
+        default config file to $XDG_CONFIG_HOME/archey.conf.
         """
 
         if file_location is None and "XDG_CONFIG_HOME" not in os.environ:
-            config_location = os.path.expanduser("~/.archey.cfg")
+            config_location = os.path.expanduser("~/.archey.conf")
         elif file_location is None:
-            config_location = os.path.expandvars("$XDG_CONFIG_HOME/archey.cfg")
+            config_location = os.path.expandvars("$XDG_CONFIG_HOME/archey.conf")
         else:
             config_location = \
                 os.path.expandvars(os.path.expanduser(file_location))
