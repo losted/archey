@@ -24,6 +24,7 @@ from datetime import datetime
 import re
 import os.path
 import multiprocessing
+import miniupnpc
 
 try:
     from logbook import Logger, lookup_level
@@ -224,6 +225,16 @@ class ipDisplay(display):
         country = f.read()
         ipaddress = instring.rstrip('\n').split('\n')
         return "Banana! IP:", ipaddress[0] +" - "+country
+
+
+@module_register("ip2")
+class ipDisplay2(display):
+    def format_output(self, instring):
+        u = miniupnpc.UPnP()
+        u.discoverdelay = 200;
+        u.discover()
+        u.selectigd()
+        return 'external ip address:', u.externalipaddress()
 
 @module_register("weather")
 class weatherDisplay(display):
