@@ -2,7 +2,7 @@
 # Contributer: Laurie Clark-Michalek <bluepeppers@archlinux.us> and graysky <graysky AT archlinux DOR us>
 
 pkgname=archey
-pkgver=1
+pkgver=0.4.59.g6c945db
 pkgrel=1
 pkgdesc="Python script to display system infomation alongside the Arch Linux logo."
 arch=('any')
@@ -26,6 +26,6 @@ pkgver() {
 
 package() {
 	cd "$srcdir/$pkgname-git"
-	python setup.py install --root=${pkgdir}-git
+	python setup.py install --root=${pkgdir}
 	install -D -m644 COPYING ${pkgdir}/usr/share/licenses/archey/COPYING
 }
