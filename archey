@@ -228,7 +228,7 @@ class ipDisplay(display):
 
 
 @module_register("ip2")
-class ipDisplay2(display):
+class ip2Display(display):
     command_line = "ls"
     def format_output(self, instring):
         u = miniupnpc.UPnP()
@@ -239,7 +239,7 @@ class ipDisplay2(display):
 
 
 @module_register("ip3")
-class ipDisplay2(display):
+class ip3Display(display):
     def format_output(self, instring):
         return "Your ip is : 127.0.0.1"
 
